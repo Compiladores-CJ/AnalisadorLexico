@@ -1,4 +1,4 @@
-
+// Teste commit
 // código ASCII para ['quebra de linha', 'Carriage return', 'espaço']
 const caracteresDescartados = [10, 13, 32]
 const digitos = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57];
