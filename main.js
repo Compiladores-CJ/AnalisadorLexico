@@ -1,21 +1,48 @@
-// Teste commitando na main
-// código ASCII para ['quebra de linha', 'Carriage return', 'espaço']
-const caracteresDescartados = [10, 13, 32]
-const digitos = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57];
-const letras = [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90]
-const demaisCaracteres = [44, 59, 58, 46, 33, 63, 92, 42, 43, 45, 47, 40, 41, 123, 125, 91, 93, 60, 62, 61, 39, 34, 95]
+function isCaractereDeQuebra(caractere) {
+  codASCII = caractere.charCodeAt(0);
+  // código ASCII para ['quebra de linha', 'Carriage return', 'espaço']
+  const caracteresDeQuebra = [10, 13, 32];
+  if(caracteresDeQuebra.includes(codASCII))
+    return true;
+  
+  return false;
+}
 
 function isDigito(caractere) {
-  if(caractere.fromCharCode(0) >= 48 || caractere.fromCharCode(0) <= 57){
+  codASCII = caractere.charCodeAt(0);
+  if(codASCII >= 48 && codASCII <= 57)
     return true;
-  }
+  
+  return false;
+}
+
+function isLetra(caractere) {
+  codASCII = caractere.charCodeAt(0);
+  if((codASCII >= 65 && codASCII <= 90) || (codASCII >= 97 && codASCII <= 122))
+    return true;
+   
+  return false;
+}
+
+function isDemaisCaracteres(caractere) {
+  codASCII = caractere.charCodeAt(0);
+  const demaisCaracteres = [44, 59, 58, 46, 33, 63, 92, 42, 43, 45, 47, 40, 41, 123, 125, 91, 93, 60, 62, 61, 39, 34, 95]
+  if(demaisCaracteres.includes(codASCII))
+    return true;
+  
+  return false;
+}
+
+function isAlfabeto(caractere) {
+  if(isDigito(caractere) || isLetra(caractere) || isCaractereDeQuebra(caractere) || isDemaisCaracteres(caractere))
+    return true;
+  
   return false;
 }
 
 //const digitos = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 //const letras = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 //const demaisCaracteres = [',', ';', ':', '.', '!', '?', '\\', '*', '+', '-', '/', '(', ')', '{', '}', '[', ']', '<', '>', '=', '\'', '\"', '_']
-const alfabeto = digitos.concat(letras).concat(demaisCaracteres).concat(caracteresDescartados)
 
 let linha = 1
 let coluna = 1
@@ -43,10 +70,8 @@ const maquinaDeterministica = {
   transitions: {
     0: {
       readCharacter: function(data){
-        console.log("Estado atual: " + this.estado)
-        //console.log("Codigo ASCII: "  + data.caractere)
-        if(alfabeto.includes(data.caractere)){
-          if(letras.includes(data.caractere)){
+        if(isAlfabeto(data.caractere)){
+          if(isLetra(data.caractere)){
             this.changeState(1);
           }
         }
@@ -58,13 +83,15 @@ const maquinaDeterministica = {
     },
     1: {
       readCharacter: function(data){
+        // console.log("tipo data:" + typeof data);
+        // console.log("tipo data.caractere:" +  data.caractere);
         console.log("Estado atual: " + this.estado)
-        //console.log("Codigo ASCII: "  + data.caractere)
-        if(letras.includes(data.caractere) || digitos.includes(data.caractere) || data.caractere == 95){
+        // console.log("Codigo ASCII: "  + data.caractere)
+        if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
           console.log("Ainda lendo um id")
         }
         else{
-          if(caracteresDescartados.includes(data.caractere)){
+          if(isCaractereDeQuebra(data.caractere)){
             console.log("Lendo um espaço, quebra de linha ou tab. Ignorar...")
             this.changeState(0)
           }
@@ -101,14 +128,16 @@ const maquinaDeterministica = {
 
 function SCANNER(data){
   let maquina = Object.create(maquinaDeterministica)
-  palavra = []
+  palavra = ""
   
+  console.log("MAQUINA PRIMEIRO ESTADO: " + maquina.estado);
+
   for(let i = cabecote; i < data.length; i++){
 
     updateLinhaEColuna(data[i]);
 
-    console.log("Passos: " + i + " Lexema: " + palavra)
-    maquina.dispatch("readCharacter", [{caractere: data.charCodeAt(i)}]);
+    console.log("Passo: " + i + " Estado: " + maquina.estado + " Lexema: " + palavra)
+    maquina.dispatch("readCharacter", [{caractere: data[i]}]);
     if(maquina.estado != 0){
       palavra = palavra + data[i]
     }
@@ -205,12 +234,12 @@ function main(){
 
 	for(let i=0; i< 2; i++){
     let token = SCANNER(data)
-    if(token.classeToken == "ERRO"){
+    if(token?.classeToken == "ERRO"){
       continue
     }
     else{
-      if(token.classeToken == "EOF") break
-      else console.log("Classe: " + token.classeToken + ", Lexema: " + token.lexemaToken + ", Tipo:" + token.tipoToken)
+      if(token?.classeToken == "EOF") break
+      else console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo:" + token?.tipoToken)
     }
   }
 
