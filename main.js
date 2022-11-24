@@ -36,7 +36,7 @@ let tabelaDeSimbolos = [
   {classeToken: 'literal', tipoToken: 'literal', lexemaToken: 'literal'},
   {classeToken: 'real', tipoToken: 'real', lexemaToken: 'real'}
 ]
-
+//teste
 // Vamos implementar o automato criado pelo Julio
 const maquinaDeterministica = {
   estado: 0,
