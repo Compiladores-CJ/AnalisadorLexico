@@ -135,8 +135,15 @@ function UPDATE(){
 
 function main(){
   const fs = require('fs')
-  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   cabecote = 0
+
+  // console.log(typeof data);
+
+  // for(let i = 0; i<data.length; i++){
+  //   console.log('Caractere:|' + data[i] + '| ASCII:|' + data.charCodeAt(i) + '|' );
+  // }
+
   //console.log(data)
   /*console.log(data.charAt(6))
   console.log(data.charCodeAt(6))
@@ -164,6 +171,9 @@ function main(){
   */
   
   //while(true){
+
+
+
 	for(let i=0; i< 2; i++){
     let token = SCANNER(data)
     if(token.classeToken == "ERRO"){
@@ -174,6 +184,8 @@ function main(){
       else console.log("Classe: " + token.classeToken + ", Lexema: " + token.lexemaToken + ", Tipo:" + token.tipoToken)
     }
   }
+
+  
 }
 
 main()
