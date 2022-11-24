@@ -47,7 +47,7 @@ function isAlfabeto(caractere) {
 let linha = 1
 let coluna = 0
 let cabecote
-let palavra = []
+let palavra = ""
 
 let tabelaDeSimbolos = [
 	{classeToken: 'inicio', tipoToken: 'inicio', lexemaToken: 'inicio'},
@@ -63,7 +63,7 @@ let tabelaDeSimbolos = [
   {classeToken: 'literal', tipoToken: 'literal', lexemaToken: 'literal'},
   {classeToken: 'real', tipoToken: 'real', lexemaToken: 'real'}
 ]
-//teste
+
 // Vamos implementar o automato criado pelo Julio
 const maquinaDeterministica = {
   estado: 0,
@@ -89,7 +89,7 @@ const maquinaDeterministica = {
             this.changeState(10); 
           } else if(isDigito(data.caractere)){
             this.changeState(11); 
-          } else if(/*END OF FILE*/ false){
+          } else if(data.caractere == null){
             this.changeState(17); 
           } else if(data.caractere == '('){
             this.changeState(18); 
@@ -97,44 +97,59 @@ const maquinaDeterministica = {
             this.changeState(19); 
           } else if(data.caractere == '{'){
             this.changeState(20); 
-          } else {
-            //erro, caractere nao pode ser processado nesse estado
+          } if(isCaractereDeQuebra(data.caractere)){
+            return -2;
           }
+          return 0;
         }
-        else{
-          // erro, caracter nao identificado
-          this.changeState(22);
-        }
+        // erro
+        else return 22;
       }
     },
     1: {
       readCharacter: function(data){
-        //console.log("Estado atual: " + this.estado)
-        if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
-          this.changeState(1)
-        }
+        if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_') return -1;
         else{
-          if(isCaractereDeQuebra(data.caractere)){
-            //console.log("Lendo um espaço, quebra de linha ou tab. Ignorar...")
-            this.changeState(0)
-          }
-          else{
-            this.changeState(0)
-          }
+          this.changeState(0)
+          return 1;  
         }
       }
     },
     2:{
-
+      readCharacter: function(data){
+        if(data.caractere == '-'){
+          this.changeState(4)
+          return -1;
+        }
+        if(data.caractere == '=' || data.caractere == '>'){
+          this.changeState(3)
+          return -1;
+        }
+      }
     },
     3:{
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 3;
+      }
     },
     4:{
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 4;
+      }
     },
     5:{
-
+      readCharacter: function(data){
+        if(data.caractere == '='){
+          this.changeState(3)
+          return -1;
+        }
+        else{
+          this.changeState(0)
+          return 5;
+        }
+      }
     },
     6: {
 
@@ -152,7 +167,10 @@ const maquinaDeterministica = {
 
     },
     11: {
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 11;
+      }
     },
     12:{
 
@@ -170,7 +188,10 @@ const maquinaDeterministica = {
 
     },
     17: {
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 17;
+      }
     },
     18:{
 
@@ -179,10 +200,19 @@ const maquinaDeterministica = {
 
     },
     20:{
-
+      readCharacter: function(data){
+        if(data.caractere == '}'){
+          this.changeState(21);
+          return -1;
+        }
+        else return -1; 
+      }
     },
     21:{
-
+      readCharacter: function(data){
+        this.changeState(0);
+        return 21; 
+      }
     },
     22: {
 
@@ -191,9 +221,71 @@ const maquinaDeterministica = {
   dispatch(actionName, ...payload){
     const actions = this.transitions[this.estado];
     const action = this.transitions[this.estado][actionName];
-
+    let result
+    
     if(action){
-      action.apply(maquinaDeterministica, ...payload);
+      result = action.apply(maquinaDeterministica, ...payload);
+      //console.log("Saida da maquina: " + result)
+      
+      if(result === 1){
+        return {
+          classeToken: 'ID',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 2){
+        return {
+          classeToken: 'ID',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 3){
+        return {
+          classeToken: 'OPR',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 4){
+        return {
+          classeToken: 'ATR',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 5){
+        return {
+          classeToken: 'OPR',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 17){
+        return {
+          classeToken: 'EOF',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 21){
+        return {
+          classeToken: 'COMENTÁRIO',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === -2){
+        return {
+          classeToken: 'IGNORAR',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      else{
+        return null
+      }
     }else{
       //action is not valid for current state
     }
@@ -205,30 +297,33 @@ const maquinaDeterministica = {
 
 function SCANNER(data){
   let maquina = Object.create(maquinaDeterministica)
+  let token
   palavra = ""
   
   console.log("MAQUINA PRIMEIRO ESTADO: " + maquina.estado);
 
   for(let i = cabecote; i < data.length; i++){
-
-    console.log("Passo:|" + i + "| Estado:|" + maquina.estado + '| LINHA:|' + linha + '| COLUNA:|' + coluna + "| Lexema:|" + palavra + "|")
-
+    //console.log("Passo:|" + i + "| Estado:|" + maquina.estado + '| LINHA:|' + linha + '| COLUNA:|' + coluna + "| Lexema:|" + palavra + "|")
     updateLinhaEColuna(data[i]);
-
-    maquina.dispatch("readCharacter", [{caractere: data[i]}]);
-    if(maquina.estado != 0){
-      palavra = palavra + data[i]
-    }
+    if(data.eof)token = maquina.dispatch("readCharacter", [{caractere: null}]);
+    else token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
+    
+    if(token == null) palavra = palavra + data[i]
     else{
-      cabecote = i+1
-      //console.log("----> " + palavra)
-      return {
-        classeToken: 'id',
-        tipoToken: 'NULO',
-        lexemaToken: palavra
+      if(token.classeToken != 'IGNORAR'){
+        token.lexemaToken = token.lexemaToken + palavra
+        cabecote = i+1
+        
+        //verificar se está na tabela de simbolos
+        if(token.classeToken == 'ID'){
+          if(SEARCH(token)) token = UPDATE(token.lexemaToken)
+        }
+  
+        return token
       }
     }
   }
+  
   function updateLinhaEColuna(caractere){
     codigoASCII = caractere.charCodeAt(0);
     /*
@@ -247,16 +342,30 @@ function SCANNER(data){
   }
 }
 
-function INSERT(){
-
+function INSERT(token){
+  tabelaDeSimbolos.push(token)
 }
 
-function SEARCH(){
-
+function SEARCH(token){
+  for(let i = 0; i < tabelaDeSimbolos.length; i++) {
+    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken) return true
+    else{
+      INSERT(token)
+      return false
+    }  
+  }
 }
 
 function UPDATE(){
-
+  for(let i = 0; i < tabelaDeSimbolos.length; i++) {
+    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken){
+      return{
+        classeToken: tabelaDeSimbolos[i].classeToken,
+        tipoToken: tabelaDeSimbolos[i].tipoToken,
+        lexemaToken: tabelaDeSimbolos[i].lexemaToken
+      }
+    }
+  }
 }
 
 function main(){
@@ -264,67 +373,21 @@ function main(){
   const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
   cabecote = 0
 
-  
-  // for(let i = 0; i<data.length; i++){
-  //   if(data.charCodeAt(i) == '13')
-  //     console.log('Caractere:|' + '<-' + '| ASCII:|' + data.charCodeAt(i) + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|')
-  //   else if(data.charCodeAt(i) == '10')
-  //     console.log('Caractere:|' + '\\n' + '| ASCII:|' + data.charCodeAt(i) + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|');
-  //   else
-  //     console.log('Caractere:|' + data[i] + '| ASCII:|' + data.charCodeAt(i) + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|');
-
-  //   coluna++;
-  //   if(data.charCodeAt(i) == '10'){
-  //     linha++;
-  //     coluna = 0;
-  //   }
-  // }
-
-  //console.log(data)
-  /*console.log(data.charAt(6))
-  console.log(data.charCodeAt(6))
-  if(alfabeto.includes(data.charCodeAt(6))){
-    console.log("Tá aqui mesmo")
-  }
-  
-  console.log(data.charAt(7))
-  console.log(data.charCodeAt(7))
-  if(alfabeto.includes(data.charCodeAt(7))){
-    console.log("Tá aqui mesmo")
-  }
-  
-  console.log(data.charAt(8))
-  console.log(data.charCodeAt(8))
-
-  console.log(data.charAt(9))
-  console.log(data.charCodeAt(9))
-  
-  console.log(data.charAt(10))
-  console.log(data.charCodeAt(10))
-  if(alfabeto.includes(data[10])){
-    console.log("Tá aqui mesmo")
-  }
-  */
-  
   //while(true){
-
-
-
-	for(let i=0; i< 2; i++){
+	for(let i = 0; i < 4; i++){
     let token = SCANNER(data)
     if(token?.classeToken == "ERRO"){
       continue
     }
     else{
+      console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo:" + token?.tipoToken)
       if(token?.classeToken == "EOF") break
-      else console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo:" + token?.tipoToken)
     }
   }
-
-  
 }
 
 main()
+//console.log(tabelaDeSimbolos)
 
 /*const buffer = fs.createReadStream('./exemplo.txt', {
     encoding: "utf8",
