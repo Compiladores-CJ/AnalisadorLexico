@@ -45,7 +45,7 @@ function isAlfabeto(caractere) {
 //const demaisCaracteres = [',', ';', ':', '.', '!', '?', '\\', '*', '+', '-', '/', '(', ')', '{', '}', '[', ']', '<', '>', '=', '\'', '\"', '_']
 
 let linha = 1
-let coluna = 1
+let coluna = 0
 let cabecote
 let palavra = []
 
@@ -73,6 +73,32 @@ const maquinaDeterministica = {
         if(isAlfabeto(data.caractere)){
           if(isLetra(data.caractere)){
             this.changeState(1);
+          } else if(data.caractere == '<'){
+            this.changeState(2); 
+          } else if(data.caractere == '='){
+            this.changeState(3); 
+          } else if(data.caractere == '>'){
+            this.changeState(5); 
+          } else if(['+','-','*','/'].includes(data.caractere)){
+            this.changeState(6); 
+          } else if(data.caractere == '\"'){
+            this.changeState(7); 
+          } else if(data.caractere == ';'){
+            this.changeState(9); 
+          } else if(data.caractere == ','){
+            this.changeState(10); 
+          } else if(isDigito(data.caractere)){
+            this.changeState(11); 
+          } else if(/*END OF FILE*/ false){
+            this.changeState(17); 
+          } else if(data.caractere == '('){
+            this.changeState(18); 
+          } else if(data.caractere == ')'){
+            this.changeState(19); 
+          } else if(data.caractere == '{'){
+            this.changeState(20); 
+          } else {
+            //erro, caractere nao pode ser processado nesse estado
           }
         }
         else{
@@ -83,16 +109,13 @@ const maquinaDeterministica = {
     },
     1: {
       readCharacter: function(data){
-        // console.log("tipo data:" + typeof data);
-        // console.log("tipo data.caractere:" +  data.caractere);
-        console.log("Estado atual: " + this.estado)
-        // console.log("Codigo ASCII: "  + data.caractere)
+        //console.log("Estado atual: " + this.estado)
         if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
-          console.log("Ainda lendo um id")
+          this.changeState(1)
         }
         else{
           if(isCaractereDeQuebra(data.caractere)){
-            console.log("Lendo um espaço, quebra de linha ou tab. Ignorar...")
+            //console.log("Lendo um espaço, quebra de linha ou tab. Ignorar...")
             this.changeState(0)
           }
           else{
@@ -101,10 +124,64 @@ const maquinaDeterministica = {
         }
       }
     },
+    2:{
+
+    },
+    3:{
+
+    },
+    4:{
+
+    },
+    5:{
+
+    },
+    6: {
+
+    },
+    7:{
+
+    },
+    8:{
+
+    },
+    9:{
+
+    },
+    10:{
+
+    },
     11: {
 
     },
+    12:{
+
+    },
+    13:{
+
+    },
+    14:{
+
+    },
+    15:{
+
+    },
+    16:{
+
+    },
     17: {
+
+    },
+    18:{
+
+    },
+    19:{
+
+    },
+    20:{
+
+    },
+    21:{
 
     },
     22: {
@@ -134,9 +211,10 @@ function SCANNER(data){
 
   for(let i = cabecote; i < data.length; i++){
 
+    console.log("Passo:|" + i + "| Estado:|" + maquina.estado + '| LINHA:|' + linha + '| COLUNA:|' + coluna + "| Lexema:|" + palavra + "|")
+
     updateLinhaEColuna(data[i]);
 
-    console.log("Passo: " + i + " Estado: " + maquina.estado + " Lexema: " + palavra)
     maquina.dispatch("readCharacter", [{caractere: data[i]}]);
     if(maquina.estado != 0){
       palavra = palavra + data[i]
