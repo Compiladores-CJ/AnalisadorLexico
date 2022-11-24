@@ -17,8 +17,8 @@ function isDigito(caractere) {
 //const demaisCaracteres = [',', ';', ':', '.', '!', '?', '\\', '*', '+', '-', '/', '(', ')', '{', '}', '[', ']', '<', '>', '=', '\'', '\"', '_']
 const alfabeto = digitos.concat(letras).concat(demaisCaracteres).concat(caracteresDescartados)
 
-let linha = 0
-let coluna = 0
+let linha = 1
+let coluna = 1
 let cabecote
 let palavra = []
 
@@ -104,6 +104,9 @@ function SCANNER(data){
   palavra = []
   
   for(let i = cabecote; i < data.length; i++){
+
+    updateLinhaEColuna(data[i]);
+
     console.log("Passos: " + i + " Lexema: " + palavra)
     maquina.dispatch("readCharacter", [{caractere: data.charCodeAt(i)}]);
     if(maquina.estado != 0){
@@ -118,7 +121,23 @@ function SCANNER(data){
         lexemaToken: palavra
       }
     }
-  } 
+  }
+  function updateLinhaEColuna(caractere){
+    codigoASCII = caractere.charCodeAt(0);
+    /*
+    if(codigoASCII == '13')
+      console.log('Caractere:|' + '<-' + '| ASCII:|' + codigoASCII + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|');
+    else if(codigoASCII == '10')
+      console.log('Caractere:|' + '\\n' + '| ASCII:|' + codigoASCII + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|');
+    else
+      console.log('Caractere:|' + caractere + '| ASCII:|' + codigoASCII + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|');
+    */
+    coluna++;
+    if(codigoASCII == '10'){
+      linha++;
+      coluna = 0;
+    }
+  }
 }
 
 function INSERT(){
@@ -135,13 +154,23 @@ function UPDATE(){
 
 function main(){
   const fs = require('fs')
-  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
   cabecote = 0
 
-  // console.log(typeof data);
-
+  
   // for(let i = 0; i<data.length; i++){
-  //   console.log('Caractere:|' + data[i] + '| ASCII:|' + data.charCodeAt(i) + '|' );
+  //   if(data.charCodeAt(i) == '13')
+  //     console.log('Caractere:|' + '<-' + '| ASCII:|' + data.charCodeAt(i) + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|')
+  //   else if(data.charCodeAt(i) == '10')
+  //     console.log('Caractere:|' + '\\n' + '| ASCII:|' + data.charCodeAt(i) + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|');
+  //   else
+  //     console.log('Caractere:|' + data[i] + '| ASCII:|' + data.charCodeAt(i) + '| LINHA:|' + linha + '| COLUNA:|' + coluna + '|');
+
+  //   coluna++;
+  //   if(data.charCodeAt(i) == '10'){
+  //     linha++;
+  //     coluna = 0;
+  //   }
   // }
 
   //console.log(data)
