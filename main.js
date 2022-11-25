@@ -89,18 +89,18 @@ const maquinaDeterministica = {
             this.changeState(10); 
           } else if(isDigito(data.caractere)){
             this.changeState(11); 
-          } else if(data.caractere == null){
-            this.changeState(17); 
           } else if(data.caractere == '('){
             this.changeState(18); 
           } else if(data.caractere == ')'){
             this.changeState(19); 
           } else if(data.caractere == '{'){
             this.changeState(20); 
-          } if(isCaractereDeQuebra(data.caractere)){
+          } else if(isCaractereDeQuebra(data.caractere)){
             return -2;
-          }
-          return 0;
+          } else if(data.caractere == 0){
+            this.changeState(17);
+          } 
+          return -1;
         }
         // erro
         else return 22;
@@ -152,40 +152,134 @@ const maquinaDeterministica = {
       }
     },
     6: {
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 6;
+      }
     },
     7:{
-
+      readCharacter: function(data){
+        if(data.caractere == '\"'){
+          this.changeState(8)
+          return -1;
+        }
+        else return -1; 
+      }
     },
     8:{
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 8;
+      }
     },
     9:{
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 9;
+      }
     },
     10:{
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 10;
+      }
     },
     11: {
       readCharacter: function(data){
-        this.changeState(0)
-        return 11;
+        if(isAlfabeto(data.caractere)){
+          if(isDigito(data.caractere)) return -1;
+          if(isCaractereDeQuebra(data.caractere) || data.caractere == 0){
+            this.changeState(0)
+            return 11;
+          }
+          if(data.caractere == "."){
+            this.changeState(12)
+            return -1; 
+          }
+          if(data.caractere == "e" || data.caractere == "E"){
+            this.changeState(14)
+            return -1;
+          }
+        }
+        else{
+          this.changeState(0)
+          return 11;
+        }
       }
     },
     12:{
-
+      readCharacter: function(data){
+        if(isDigito(data.caractere)){
+          this.changeState(13)
+          return -1;
+        }
+        else{
+          this.changeState(22)
+          return -1;
+        }    
+      }
     },
     13:{
-
+      readCharacter: function(data){
+        if(isAlfabeto(data.caractere)){
+          if(isDigito(data.caractere)) return -1;
+          if(data.caractere == "e" || data.caractere == "E"){
+            this.changeState(14)
+            return -1;
+          }
+        }
+        else{
+          this.changeState(0)
+          return 13;
+        }
+      }
     },
     14:{
-
+      readCharacter: function(data){
+        if(isAlfabeto(data.caractere)){
+          if(isDigito(data.caractere)){
+            this.changeState(15)
+            return -1;
+          }
+          if(data.caractere == "+" || data.caractere == "-"){
+            this.changeState(16)
+            return -1;
+          }
+        }
+        else{
+          this.changeState(0)
+          return 22;
+        }
+      }
     },
     15:{
-
+      readCharacter: function(data){
+        if(isAlfabeto(data.caractere)){
+          if(isDigito(data.caractere)) return -1;
+          if(data.caractere == "+" || data.caractere == "-"){
+            this.changeState(16)
+            return -1;
+          }
+        }
+        else{
+          this.changeState(0)
+          return 15;
+        }
+      }
     },
     16:{
-
+      readCharacter: function(data){
+        if(isAlfabeto(data.caractere)){
+          if(isDigito(data.caractere)){
+            this.changeState(15)
+            return -1;
+          }
+        }
+        else{
+          this.changeState(0)
+          return 22;
+        }
+      }
     },
     17: {
       readCharacter: function(data){
@@ -194,18 +288,36 @@ const maquinaDeterministica = {
       }
     },
     18:{
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 18;
+      }
     },
     19:{
-
+      readCharacter: function(data){
+        this.changeState(0)
+        return 19;
+      }
     },
     20:{
       readCharacter: function(data){
-        if(data.caractere == '}'){
-          this.changeState(21);
-          return -1;
+        if(isAlfabeto(data.caractere)){
+          if(data.caractere == '}'){
+            this.changeState(21);
+            return -1;
+          }
+          if(data.caractere == 0){
+            console.log("ERRO LÉXICO – Comentário não foi fechado, linha " + linha + ", coluna " + coluna)
+            this.changeState(0);
+            return 22;
+          }
+          else return -1;
         }
-        else return -1; 
+        else{
+          console.log("ERRO LÉXICO – Caractere inválido na linguagem, linha " + linha + ", coluna " + coluna)
+            this.changeState(0);
+            return 22;
+        } 
       }
     },
     21:{
@@ -213,9 +325,6 @@ const maquinaDeterministica = {
         this.changeState(0);
         return 21; 
       }
-    },
-    22: {
-
     }
   },
   dispatch(actionName, ...payload){
@@ -225,8 +334,7 @@ const maquinaDeterministica = {
     
     if(action){
       result = action.apply(maquinaDeterministica, ...payload);
-      //console.log("Saida da maquina: " + result)
-      
+      console.log("Estado atual: " + this.estado + "\n")
       if(result === 1){
         return {
           classeToken: 'ID',
@@ -236,7 +344,7 @@ const maquinaDeterministica = {
       }
       if(result === 2){
         return {
-          classeToken: 'ID',
+          classeToken: 'OPR',
           tipoToken: 'NULO',
           lexemaToken: ""
         }
@@ -262,9 +370,72 @@ const maquinaDeterministica = {
           lexemaToken: ""
         }
       }
+      if(result === 6){
+        return {
+          classeToken: 'OPA',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 8){
+        return {
+          classeToken: 'LIT',
+          tipoToken: 'literal',
+          lexemaToken: ""
+        }
+      }
+      if(result === 9){
+        return {
+          classeToken: 'PT_V',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 10){
+        return {
+          classeToken: 'VIR',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 11){
+        return {
+          classeToken: 'NUM',
+          tipoToken: 'inteiro',
+          lexemaToken: ""
+        }
+      }
+      if(result === 13){
+        return {
+          classeToken: 'NUM',
+          tipoToken: 'real',
+          lexemaToken: ""
+        }
+      }
+      if(result === 15){
+        return {
+          classeToken: 'NUM',
+          tipoToken: 'inteiro',
+          lexemaToken: ""
+        }
+      }
       if(result === 17){
         return {
           classeToken: 'EOF',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 18){
+        return {
+          classeToken: 'AB_P',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result === 19){
+        return {
+          classeToken: 'FC_P',
           tipoToken: 'NULO',
           lexemaToken: ""
         }
@@ -276,7 +447,14 @@ const maquinaDeterministica = {
           lexemaToken: ""
         }
       }
-      if(result === -2){
+      if(result == 22){
+        return {
+          classeToken: 'ERROR',
+          tipoToken: 'NULO',
+          lexemaToken: ""
+        }
+      }
+      if(result == -2){
         return {
           classeToken: 'IGNORAR',
           tipoToken: 'NULO',
@@ -300,19 +478,19 @@ function SCANNER(data){
   let token
   palavra = ""
   
-  console.log("MAQUINA PRIMEIRO ESTADO: " + maquina.estado);
+  //console.log("MAQUINA PRIMEIRO ESTADO: " + maquina.estado);
 
   for(let i = cabecote; i < data.length; i++){
     //console.log("Passo:|" + i + "| Estado:|" + maquina.estado + '| LINHA:|' + linha + '| COLUNA:|' + coluna + "| Lexema:|" + palavra + "|")
     updateLinhaEColuna(data[i]);
-    if(data.eof)token = maquina.dispatch("readCharacter", [{caractere: null}]);
-    else token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
+    
+    token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
     
     if(token == null) palavra = palavra + data[i]
     else{
       if(token.classeToken != 'IGNORAR'){
         token.lexemaToken = token.lexemaToken + palavra
-        cabecote = i+1
+        cabecote = i
         
         //verificar se está na tabela de simbolos
         if(token.classeToken == 'ID'){
@@ -321,6 +499,7 @@ function SCANNER(data){
   
         return token
       }
+      else cabecote = i+1
     }
   }
   
@@ -370,11 +549,11 @@ function UPDATE(){
 
 function main(){
   const fs = require('fs')
-  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./teste2.txt', {encoding:'utf8', flag:'r'});
   cabecote = 0
-
+  console.log(data + "\n")
   //while(true){
-	for(let i = 0; i < 4; i++){
+	for(let i = 0; i < 7; i++){
     let token = SCANNER(data)
     if(token?.classeToken == "ERRO"){
       continue
@@ -388,19 +567,3 @@ function main(){
 
 main()
 //console.log(tabelaDeSimbolos)
-
-/*const buffer = fs.createReadStream('./exemplo.txt', {
-    encoding: "utf8",
-    highWaterMark: 1,
-  });*/
-  /*buffer.on("data", (data) => {
-		if(alfabeto.includes(data)){
-			console.log("Caractere legal")
-      return
-    }
-    else{
-      console.log("CARACTERE DESCONHECIDO NA LINGUAGEM: " + data);
-      return
-    }
-    
-  })*/
