@@ -477,7 +477,6 @@ function SCANNER(data){
   let maquina = Object.create(maquinaDeterministica)
   let token
   palavra = ""
-  
   //console.log("MAQUINA PRIMEIRO ESTADO: " + maquina.estado);
 
   for(let i = cabecote; i < data.length; i++){
@@ -493,9 +492,7 @@ function SCANNER(data){
         cabecote = i
         
         //verificar se está na tabela de simbolos
-        if(token.classeToken == 'ID'){
-          if(SEARCH(token)) token = UPDATE(token.lexemaToken)
-        }
+        if(token.classeToken == 'ID' && SEARCH(token)) token = UPDATE(token.lexemaToken)
   
         return token
       }
