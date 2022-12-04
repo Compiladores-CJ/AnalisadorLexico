@@ -1,1 +1,1 @@
-teste 12 + 13 id varinicio
+(varinicio;inicio;leia;id)

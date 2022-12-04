@@ -49,18 +49,18 @@ let coluna = 0
 let cabecote = 0
 
 let tabelaDeSimbolos = [
-	{classeToken: 'inicio', tipoToken: 'inicio', lexemaToken: 'inicio'},
-	{classeToken: 'varinicio', tipoToken: 'varinicio', lexemaToken: 'varinicio'},
-	{classeToken: 'varfim', tipoToken: 'varfim', lexemaToken: 'varfim'},
-	{classeToken: 'escreva', tipoToken: 'escreva', lexemaToken: 'escreva'},
-  {classeToken: 'leia', tipoToken: 'leia', lexemaToken: 'leia'},
-  {classeToken: 'se', tipoToken: 'se', lexemaToken: 'se'},
-  {classeToken: 'entao', tipoToken: 'entao', lexemaToken: 'entao'},
-  {classeToken: 'fimse', tipoToken: 'fimse', lexemaToken: 'fimse'},
-  {classeToken: 'fim', tipoToken: 'fim', lexemaToken: 'fim'},
-  {classeToken: 'inteiro', tipoToken: 'inteiro', lexemaToken: 'inteiro'},
-  {classeToken: 'literal', tipoToken: 'literal', lexemaToken: 'literal'},
-  {classeToken: 'real', tipoToken: 'real', lexemaToken: 'real'}
+	{classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'},
+	{classeToken: 'varinicio' ,tipoToken: 'varinicio' ,lexemaToken: 'varinicio'},
+	{classeToken: 'varfim'    ,tipoToken: 'varfim'    ,lexemaToken: 'varfim'},
+	{classeToken: 'escreva'   ,tipoToken: 'escreva'   ,lexemaToken: 'escreva'},
+  {classeToken: 'leia'      ,tipoToken: 'leia'      ,lexemaToken: 'leia'},
+  {classeToken: 'se'        ,tipoToken: 'se'        ,lexemaToken: 'se'},
+  {classeToken: 'entao'     ,tipoToken: 'entao'     ,lexemaToken: 'entao'},
+  {classeToken: 'fimse'     ,tipoToken: 'fimse'     ,lexemaToken: 'fimse'},
+  {classeToken: 'fim'       ,tipoToken: 'fim'       ,lexemaToken: 'fim'},
+  {classeToken: 'inteiro'   ,tipoToken: 'inteiro'   ,lexemaToken: 'inteiro'},
+  {classeToken: 'literal'   ,tipoToken: 'literal'   ,lexemaToken: 'literal'},
+  {classeToken: 'real'      ,tipoToken: 'real'      ,lexemaToken: 'real'}
 ]
 
 // Vamos implementar o automato criado pelo Julio
@@ -106,6 +106,7 @@ const maquinaDeterministica = {
             this.changeState(19); 
           } else if(data.caractere == '{'){
             this.changeState(20); 
+          ///////////////////////////////////////////////////////////////////////////////////////////
           } else if(isCaractereDeQuebra(data.caractere)){
             console.log("Ignorando Espaço")
             this.token.lexemaToken = '';
@@ -131,8 +132,17 @@ const maquinaDeterministica = {
         } 
         else{
           this.changeState(0)
-          this.token.classeToken = 'ID';
-          this.token.tipoToken = 'NULO';
+          if(SEARCH(this.token)){ 
+            let token = UPDATE(this.token.lexemaToken)
+            this.token.classeToken = token.classeToken;
+            this.token.tipoToken = token.tipoToken;
+            this.token.lexemaToken = token.lexemaToken;
+          }
+          else{
+            this.token.classeToken = 'ID';
+            this.token.tipoToken = 'NULO';
+          }
+          
           return this.token;  
         }
       }
@@ -254,7 +264,7 @@ const maquinaDeterministica = {
             this.token.classeToken = 'NUM';
             return this.token;
           }
-      }
+        }
       }
     },
     12:{
@@ -442,8 +452,7 @@ function SCANNER(data){
     else {
       if(token.classeToken != 'IGNORAR'){
         cabecote = i
-        //verificar se está na tabela de simbolos
-        if(token.classeToken == 'ID' && SEARCH(token)) token = UPDATE(token.lexemaToken)
+        
         return token
       }
       else {
@@ -469,18 +478,15 @@ function INSERT(token){
 }
 
 function SEARCH(token){
-  for(let i = 0; i < tabelaDeSimbolos.length; i++) {
-    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken) return true
-    else{
-      INSERT(token)
-      return false
-    }  
-  }
+  for(let i = 0; i < tabelaDeSimbolos.length; i++) if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken) return true
+  
+  INSERT(token)
+  return false
 }
 
-function UPDATE(){
+function UPDATE(lexema){
   for(let i = 0; i < tabelaDeSimbolos.length; i++) {
-    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken){
+    if(tabelaDeSimbolos[i].lexemaToken == lexema){
       return{
         classeToken: tabelaDeSimbolos[i].classeToken,
         tipoToken: tabelaDeSimbolos[i].tipoToken,
@@ -496,7 +502,7 @@ function main(){
   //cabecote = 0
   //console.log(data + "\n")
   //while(true){
-	for(let i = 0; i < 12; i++){
+	for(let i = 0; i < 10; i++){
     let token = SCANNER(data)
     
     if(token?.classeToken == 'EOF') break
