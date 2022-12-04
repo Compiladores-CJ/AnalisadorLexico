@@ -72,14 +72,16 @@ const maquinaDeterministica = {
   transitions: {
     0: {
       readCharacter: function(data){
-        // fazer EOF funcionar!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if(data.caractere == 0){
+        //if((data.caractere == 0 && data.caractere != " ") || data.caractere == undefined){
+        if((data.caractere != " " && data.caractere != "\n" && data.caractere == 0) || data.caractere == undefined){
           this.token.classeToken = 'EOF';
           this.token.tipoToken = 'NULO';
+          this.token.lexemaToken = '';
           return this.token;
-          //this.changeState(17);
         }
+        
         this.token.lexemaToken = data.caractere;
+        //console.log("Caractere na Maquina: " + data.caractere)
         if(isAlfabeto(data.caractere)){
           if(isLetra(data.caractere)){
             this.changeState(1);
@@ -108,14 +110,9 @@ const maquinaDeterministica = {
             this.changeState(20); 
           ///////////////////////////////////////////////////////////////////////////////////////////
           } else if(isCaractereDeQuebra(data.caractere)){
-            console.log("Ignorando Espaço")
-            this.token.lexemaToken = '';
-            this.token.classeToken = 'IGNORAR';
-            this.token.tipoToken = 'NULO';
-            return this.token;
+            this.changeState(22);
           }  
         }
-        // erro
         else{
           console.log("ERRO LÉXICO - Caractere inválido na linguagem. Linha " + linha + ", coluna " + coluna)
           this.token.classeToken = 'ERROR';
@@ -126,11 +123,27 @@ const maquinaDeterministica = {
     },
     1: {
       readCharacter: function(data){
-        if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
-          this.token.lexemaToken = this.token.lexemaToken + data.caractere;
-          return null;
-        } 
-        else{
+        if(data.caractere != undefined){
+          if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
+            this.token.lexemaToken = this.token.lexemaToken + data.caractere;
+            return null;
+          } 
+          else{
+            this.changeState(0)
+            if(SEARCH(this.token)){ 
+              let token = UPDATE(this.token.lexemaToken)
+              this.token.classeToken = token.classeToken;
+              this.token.tipoToken = token.tipoToken;
+              this.token.lexemaToken = token.lexemaToken;
+            }
+            else{
+              this.token.classeToken = 'ID';
+              this.token.tipoToken = 'NULO';      
+            }
+            return this.token;  
+          }
+        }
+        if(data.caractere != " "){
           this.changeState(0)
           if(SEARCH(this.token)){ 
             let token = UPDATE(this.token.lexemaToken)
@@ -140,9 +153,8 @@ const maquinaDeterministica = {
           }
           else{
             this.token.classeToken = 'ID';
-            this.token.tipoToken = 'NULO';
+            this.token.tipoToken = 'NULO';      
           }
-          
           return this.token;  
         }
       }
@@ -337,7 +349,6 @@ const maquinaDeterministica = {
             return this.token;
           }
         }
-        
       }
     },
     16:{
@@ -382,21 +393,25 @@ const maquinaDeterministica = {
     },
     20:{
       readCharacter: function(data){
+        // arrumar o erro de comentário que nao fecha!
         this.token.lexemaToken = this.token.lexemaToken + data.caractere;
         if(data.caractere == '}'){
           this.changeState(21);
           return null;
         }
         else {
-          if(data.caractere != 0 || isCaractereDeQuebra(data.caractere)){
+          /*if(data.caractere != 0 || isCaractereDeQuebra(data.caractere)){
             return null;
-          }
-          else {
+          } */
+          if(data.caractere == 0 && data.caractere != " "){
             console.log("ERRO LÉXICO – Comentário não foi fechado, linha " + linha + ", coluna " + coluna)
             this.changeState(0);
             this.token.classeToken = 'ERROR';
             this.token.tipoToken = 'NULO';
             return this.token;
+          }  
+          if(data.caractere == " "){
+            return null;
           } 
         } 
       }
@@ -405,6 +420,15 @@ const maquinaDeterministica = {
       readCharacter: function(data){
         this.changeState(0)
         this.token.classeToken = 'COMENTÁRIO';
+        this.token.tipoToken = 'NULO';
+        return this.token;
+      }
+    },
+    22:{
+      readCharacter: function(data){
+        this.token.lexemaToken = data.caractere;
+        this.changeState(0)
+        this.token.classeToken = 'IGNORAR';
         this.token.tipoToken = 'NULO';
         return this.token;
       }
@@ -441,23 +465,18 @@ function SCANNER(data){
   //console.log("\nMAQUINA PRIMEIRO ESTADO: " + maquina.estado);
 
   for(let i = cabecote; i < data.length + 1; i++){
-    ///////////////////////////////////////////////////////////////////////////
-    if(i == data.length) token = maquina.dispatch("readCharacter", [{caractere: 0}]);
-    else{
-      updateLinhaEColuna(data[i]); 
-      token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
-    } 
-    //////////////////////////////////////////////////////////////////////////
+    //console.log("Lendo caractere: " + data[i])
+    if(i != data.length) updateLinhaEColuna(data[i]); 
+    
+    token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
+    
     if(token == null)continue
     else {
-      if(token.classeToken != 'IGNORAR'){
-        cabecote = i
-        
-        return token
-      }
+      cabecote = i
+      if(token.classeToken != 'IGNORAR') return token
       else {
-        console.log("Ignorando Espaço")
-        cabecote = i+1
+        //console.log("Ignorando Espaço")
+        //cabecote++
       }
     }
   }
@@ -499,15 +518,13 @@ function UPDATE(lexema){
 function main(){
   const fs = require('fs')
   const data = fs.readFileSync('./teste2.txt', {encoding:'utf8', flag:'r'});
-  //cabecote = 0
-  //console.log(data + "\n")
-  //while(true){
-	for(let i = 0; i < 10; i++){
+  //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  while(true){
     let token = SCANNER(data)
     
-    if(token?.classeToken == 'EOF') break
     if(token?.classeToken == "ERRO") continue
-    else console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo:" + token?.tipoToken) 
+    console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
+    if(token?.classeToken == 'EOF') break 
   }
 }
 

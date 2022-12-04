@@ -1,1 +1,1 @@
-(varinicio;inicio;leia;id)
+13 + 14 + 15
