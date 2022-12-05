@@ -399,7 +399,7 @@ const maquinaDeterministica = {
         this.changeState(0)
         this.token.classeToken = 'COMENTÁRIO';
         this.token.tipoToken = 'NULO';
-        return this.token;
+        return null;
       }
     }
   },
@@ -434,7 +434,7 @@ function SCANNER(data){
   //console.log('DATA LENGTH:' + data.length);
   for(let i = cabecote; i < data.length + 1; i++){
     
-    if(i != data.length && i != 0) updateLinhaEColuna(data[i]); 
+    if(i != data.length) updateLinhaEColuna(data[i]); 
     
     token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
     
@@ -459,14 +459,14 @@ function SCANNER(data){
 }
 
 function INSERT(token){
-  console.log("ANTES DO INSERT");
-  console.table(tabelaDeSimbolos);
+  //console.log("ANTES DO INSERT");
+  //console.table(tabelaDeSimbolos);
   let newToken = new Object();
   newToken = token
   tabelaDeSimbolos.push(newToken)
   
-  console.log("DEPOIS DO INSERT");
-  console.table(tabelaDeSimbolos);
+  //console.log("DEPOIS DO INSERT");
+  //console.table(tabelaDeSimbolos);
 }
 
 function SEARCH(token){
@@ -492,8 +492,8 @@ function UPDATE(token){
 
 function main(){
   const fs = require('fs')
-  const data = fs.readFileSync('./teste2.txt', {encoding:'utf8', flag:'r'});
-  //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  //const data = fs.readFileSync('./teste2.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   
   while(true){
     let token = SCANNER(data)
@@ -501,14 +501,14 @@ function main(){
     if(token?.classeToken == "ERRO") continue
     
     if(token?.classeToken === "ID"){
-      console.log("  ACHEI UM ID: " + token.lexemaToken)
+      //console.log("  ACHEI UM ID: " + token.lexemaToken)
       if(SEARCH(token)){ 
-        console.log("    ELE ESTA NA TABELA DE SIMBOLOS")
+        //console.log("    ELE ESTA NA TABELA DE SIMBOLOS")
         let updatedToken = UPDATE(token)
         token = updatedToken;
       }
       else {
-        console.log("     ELE NAO ESTA NA TABELA DE SIMBOLOS, INSERINDO O TOKEN: " + token.lexemaToken)
+        //console.log("     ELE NAO ESTA NA TABELA DE SIMBOLOS, INSERINDO O TOKEN: " + token.lexemaToken)
         INSERT(token);
       }
     }
