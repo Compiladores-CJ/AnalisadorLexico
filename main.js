@@ -129,42 +129,44 @@ const maquinaDeterministica = {
       readCharacter: function(data){
         console.log('ESTADO 1 readCharacter', data)
         if(data.caractere != undefined){
+          this.token.classeToken = 'ID';
+          this.token.tipoToken = 'NULO'; 
           if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
             this.token.lexemaToken = this.token.lexemaToken + data.caractere;
             return null;
           } 
           else{
-            console.log('MACA MACA MACA MACA MACA');
+            console.log('MACA MACA MACA MACA MACA', this.token);
             this.changeState(0)
             if(SEARCH(this.token)){ 
               console.log('BANANA BANANA BANANA BANANA');
-              let token = UPDATE(this.token.lexemaToken)
-              this.token.classeToken = token.classeToken;
-              this.token.tipoToken = token.tipoToken;
-              this.token.lexemaToken = token.lexemaToken;
+              let updatedToken = UPDATE(this.token)
+              this.token = updatedToken;
             }
             else{
               console.log('PERA PERA PERA PERA PERA PERA');
               this.token.classeToken = 'ID';
               this.token.tipoToken = 'NULO';      
             }
+            INSERT(this.token);
             return this.token;  
           }
         }
-        if(data.caractere != " "){
-          this.changeState(0)
-          if(SEARCH(this.token)){ 
-            let token = UPDATE(this.token.lexemaToken)
-            this.token.classeToken = token.classeToken;
-            this.token.tipoToken = token.tipoToken;
-            this.token.lexemaToken = token.lexemaToken;
-          }
-          else{
-            this.token.classeToken = 'ID';
-            this.token.tipoToken = 'NULO';      
-          }
-          return this.token;  
+        else{
+          console.log("PRA QUE DIABOS SERVE ESSE OUTRO IF, VAMOS DESCOBRIR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         }
+        // if(data.caractere != " "){
+        //   this.changeState(0)
+        //   if(SEARCH(this.token)){ 
+        //     let updatedToken = UPDATE(this.token)
+        //     this.token = updatedToken;
+        //   }
+        //   else{
+        //     this.token.classeToken = 'ID';
+        //     this.token.tipoToken = 'NULO';      
+        //   }
+        //   return this.token;  
+        // }
       }
     },
     2:{
@@ -506,21 +508,29 @@ function SCANNER(data){
 }
 
 function INSERT(token){
+  console.log("ANTES DO INSERT");
+  console.table(tabelaDeSimbolos);
   tabelaDeSimbolos.push(token)
+  
+  console.log("DEPOIS DO INSERT");
+  console.table(tabelaDeSimbolos);
 }
 
 function SEARCH(token){
   for(let i = 0; i < tabelaDeSimbolos.length; i++)
-    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken)
+    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken){
+      console.log("SEARCH IF LOUCO ATIVAR", token);
       return true
-  
-  INSERT(token)
+    }
+      
+  console.log("SEARCH CHAMANDO INSERT E RETORNANDO FALSE");
+  //INSERT(token)
   return false
 }
 
-function UPDATE(lexema){
+function UPDATE(token){
   for(let i = 0; i < tabelaDeSimbolos.length; i++) {
-    if(tabelaDeSimbolos[i].lexemaToken == lexema){
+    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken){
       return{
         classeToken: tabelaDeSimbolos[i].classeToken,
         tipoToken: tabelaDeSimbolos[i].tipoToken,

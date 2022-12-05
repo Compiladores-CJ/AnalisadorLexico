@@ -1,5 +1,42 @@
-1 - Nao coloca na tabela de símbolos nenhum ID. Exemplo "id+teste+id)14+15)"
-2 - Exemplo "id+teste+id)14+15)" --> "teste" está como OPA e nao ID
-3 - erro undefined nas funções que usa ASCII
-4 - nao identifica espaço - espaço está sendo identificado como EOF
+# 1 - Nao coloca na tabela de símbolos nenhum ID. Exemplo "id+teste+id)14+15)"
+
+JULIO -> Para o erro acima eu mexi na função INSERT(). Ela estava sendo chamada dentro da SEARCH(), mas no código dentro do ESTADO 1 eu percebi que a função SEARCH() era chamada, depois o TOKEN recebia alterações e só aí o INSERT() deveria ser feito. Isso não estava acontecendo porque a chamada da INSERT() estava dentro da SEARCH() (obs: olhar linha 151 onde a INSERT é chamada agora)
+
+
+# 2 - Exemplo "id+teste+id)14+15)" --> "teste" está como OPA e nao ID
+
+JULIO -> Para o erro acima eu mexi nas linhas 132 e 133 adicionando o seguinte trecho de código:
+"
+          this.token.classeToken = 'ID';
+          this.token.tipoToken = 'NULO'; 
+"
+O que estava acontecendo era que ao passar por um "+" antes do ID e depois entrar no estado 1 (estado de LITERAL) o token ainda estava mantendo a classe OPA do "+". A Classe e o tipo já podem ser alterados assim que o autômato entra no estado 1, só o lexema que precisa ser mexido depois.
+
+# 3 - erro undefined nas funções que usa ASCII
+
+JULIO -> Debugando o código eu percebi que as vezes o token está como undefined, mas nos lugares em que você tratou como (this.token == null) ele parece retornar 'true' mesmo o token sendo undefined então o código está funcionando. Eu não achei nenhum lugar no código onde o data.caractere da undefined, depois preciso remover as verificações de undefined e ver o que acontece. Até coloquei um console log na linha 156 para verificar e não achei nada. Tem o seguinte código:
+"
+else{
+          console.log("PRA QUE DIABOS SERVE ESSE OUTRO IF, VAMOS DESCOBRIR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        }
+"
+
+# 4 - nao identifica espaço - espaço está sendo identificado como EOF
+
+JULIO -> Para resolver esse problema eu percebi que na linha 114 (no final do ESTADO 0) estávamos fazendo um this.changeState(22). O estado 22 não existia no nosso autômato e na abordagem antiga eu tinha criado ele pra tratar erros. Não excluí ele ainda, mas talvez ele esteja sem propósito agora. A correção foi mudar para this.changeState(0) já que agora ao achar um espaço, TAB ou quebra de linha o autômato volta para o estado inicial que era o esperado.
+
+
 5 - arrumar erro de caractere nao pertencente à linguagem --> gera loop infinito
+
+JULIO -> Esse aqui eu nem testei kkk Talvez a solução seja dentro de todos os estados fazer um:
+"
+	if(caractere PERTENCE ao alfabeto)
+		SIGA EM FRENTE
+	else
+		RETORNA um token de ERRO para o SCANNER interromper o laço infinito
+"
+Acho que temos esse IF()ELSE implementado no estado 0, mas não implementamos em todos os estados e por isso o loop infinito pode estar acontecendo. Mas é tudo suposição.
+
+6 - Erro novo: embora os IDs estejam funcionando corretamente, o EOF ainda é adicionado na tabela contra nossa vontade. 
+
+JULIO -> Aqui dentro eu entendi o problema do "undefined" que você mencionou. Precisamos achar uma forma consistente de comparar esse caractere de fim de arquivo dentro de um if() ou então podemos usar aquela solução de achar o final do arquivo pelo data.length. Atualmente nossa máquina de estados recebe o data.caractere como uma string e por isso podemos fazer as comparações sem usar os valores da tabela ASCII. Talvez se a gente mandar para a máquina de estados data.caractere como ASCII e mudar todas as comparações dentro da máquina de estado a gente consiga fazer um if(data.caractere == 0) funcionar melhor. Ou se fizer data.caractere.charCodeAt(0) == 0....... Mas não sei, é tudo suposição e não testei ainda.
