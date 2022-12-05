@@ -72,6 +72,7 @@ const maquinaDeterministica = {
   transitions: {
     0: {
       readCharacter: function(data){
+        console.log('ESTADO 0 readCharacter', data)
         //if((data.caractere == 0 && data.caractere != " ") || data.caractere == undefined){
         if((data.caractere != " " && data.caractere != "\n" && data.caractere == 0) || data.caractere == undefined){
           this.token.classeToken = 'EOF';
@@ -110,7 +111,10 @@ const maquinaDeterministica = {
             this.changeState(20); 
           ///////////////////////////////////////////////////////////////////////////////////////////
           } else if(isCaractereDeQuebra(data.caractere)){
-            this.changeState(22);
+            console.log('HEY, O ERRO ESTAVA AQUI O TEMPO TODO!!!!!!!')
+            
+            //this.changeState(22);
+            this.changeState(0);
           }  
         }
         else{
@@ -123,20 +127,24 @@ const maquinaDeterministica = {
     },
     1: {
       readCharacter: function(data){
+        console.log('ESTADO 1 readCharacter', data)
         if(data.caractere != undefined){
           if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
             this.token.lexemaToken = this.token.lexemaToken + data.caractere;
             return null;
           } 
           else{
+            console.log('MACA MACA MACA MACA MACA');
             this.changeState(0)
             if(SEARCH(this.token)){ 
+              console.log('BANANA BANANA BANANA BANANA');
               let token = UPDATE(this.token.lexemaToken)
               this.token.classeToken = token.classeToken;
               this.token.tipoToken = token.tipoToken;
               this.token.lexemaToken = token.lexemaToken;
             }
             else{
+              console.log('PERA PERA PERA PERA PERA PERA');
               this.token.classeToken = 'ID';
               this.token.tipoToken = 'NULO';      
             }
@@ -442,7 +450,6 @@ const maquinaDeterministica = {
     if(action){
       result = action.apply(maquinaDeterministica, ...payload);
       //console.log("Estado atual: " + this.estado)
-      
       return result
     } else {
       //action is not valid for current state
@@ -463,14 +470,20 @@ function SCANNER(data){
   let token
   
   //console.log("\nMAQUINA PRIMEIRO ESTADO: " + maquina.estado);
-
+  console.log('DATA LENGTH:' + data.length);
   for(let i = cabecote; i < data.length + 1; i++){
     //console.log("Lendo caractere: " + data[i])
     if(i != data.length) updateLinhaEColuna(data[i]); 
     
+    console.log('|' + data[i] + '|')
     token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
     
-    if(token == null)continue
+    console.log('TOKEN:');
+    console.log(token);
+    if(token == null) {
+      //console.log('ENTRANDO AQUI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+      continue
+    }
     else {
       cabecote = i
       if(token.classeToken != 'IGNORAR') return token
@@ -497,7 +510,9 @@ function INSERT(token){
 }
 
 function SEARCH(token){
-  for(let i = 0; i < tabelaDeSimbolos.length; i++) if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken) return true
+  for(let i = 0; i < tabelaDeSimbolos.length; i++)
+    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken)
+      return true
   
   INSERT(token)
   return false
@@ -529,4 +544,4 @@ function main(){
 }
 
 main()
-//console.log(tabelaDeSimbolos)
+console.table(tabelaDeSimbolos)

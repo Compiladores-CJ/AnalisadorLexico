@@ -1,0 +1,5 @@
+1 - Nao coloca na tabela de símbolos nenhum ID. Exemplo "id+teste+id)14+15)"
+2 - Exemplo "id+teste+id)14+15)" --> "teste" está como OPA e nao ID
+3 - erro undefined nas funções que usa ASCII
+4 - nao identifica espaço - espaço está sendo identificado como EOF
+5 - arrumar erro de caractere nao pertencente à linguagem --> gera loop infinito

@@ -1,3 +1,3 @@
-1- Podemos ler o texto, armazenar em uma string e dai pegar caractere a caractere?
-2- Na parte de Num (inteiro e real) quando entramos em notacao cientifica como sabemos se ele eh inteiro ou real (levando em conta o autômato)
-3- O Carriage Return pode ser ignorado?
+# 1- Podemos ler o texto, armazenar em uma string e dai pegar caractere a caractere?
+# 2- Na parte de Num (inteiro e real) quando entramos em notacao cientifica como sabemos se ele eh inteiro ou real (levando em conta o autômato)
+# 3- O Carriage Return pode ser ignorado?
