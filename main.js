@@ -45,19 +45,19 @@ let coluna = 1
 let cabecote = 0
 
 let tabelaDeSimbolos = [
-	{classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'},
-	{classeToken: 'varinicio' ,tipoToken: 'varinicio' ,lexemaToken: 'varinicio'},
-	{classeToken: 'varfim'    ,tipoToken: 'varfim'    ,lexemaToken: 'varfim'},
-	{classeToken: 'escreva'   ,tipoToken: 'escreva'   ,lexemaToken: 'escreva'},
-  {classeToken: 'leia'      ,tipoToken: 'leia'      ,lexemaToken: 'leia'},
-  {classeToken: 'se'        ,tipoToken: 'se'        ,lexemaToken: 'se'},
-  {classeToken: 'entao'     ,tipoToken: 'entao'     ,lexemaToken: 'entao'},
-  {classeToken: 'fimse'     ,tipoToken: 'fimse'     ,lexemaToken: 'fimse'},
-  {classeToken: 'fim'       ,tipoToken: 'fim'       ,lexemaToken: 'fim'},
-  {classeToken: 'inteiro'   ,tipoToken: 'inteiro'   ,lexemaToken: 'inteiro'},
-  {classeToken: 'literal'   ,tipoToken: 'literal'   ,lexemaToken: 'literal'},
-  {classeToken: 'real'      ,tipoToken: 'real'      ,lexemaToken: 'real'}
-]
+	{classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'    },
+	{classeToken: 'varinicio' ,tipoToken: 'varinicio' ,lexemaToken: 'varinicio' },
+	{classeToken: 'varfim'    ,tipoToken: 'varfim'    ,lexemaToken: 'varfim'    },
+	{classeToken: 'escreva'   ,tipoToken: 'escreva'   ,lexemaToken: 'escreva'   },
+  {classeToken: 'leia'      ,tipoToken: 'leia'      ,lexemaToken: 'leia'      },
+  {classeToken: 'se'        ,tipoToken: 'se'        ,lexemaToken: 'se'        },
+  {classeToken: 'entao'     ,tipoToken: 'entao'     ,lexemaToken: 'entao'     },
+  {classeToken: 'fimse'     ,tipoToken: 'fimse'     ,lexemaToken: 'fimse'     },
+  {classeToken: 'fim'       ,tipoToken: 'fim'       ,lexemaToken: 'fim'       },
+  {classeToken: 'inteiro'   ,tipoToken: 'inteiro'   ,lexemaToken: 'inteiro'   },
+  {classeToken: 'literal'   ,tipoToken: 'literal'   ,lexemaToken: 'literal'   },
+  {classeToken: 'real'      ,tipoToken: 'real'      ,lexemaToken: 'real'      }
+];
 
 // Vamos implementar o automato criado pelo Julio
 const maquinaDeterministica = {
@@ -68,8 +68,8 @@ const maquinaDeterministica = {
   transitions: {
     0: {
       readCharacter: function(data){
-        //console.log("ESTADO:|" + this.estado + "| CARACTERE:|" + data.caractere + '|');
-        //console.table(tabelaDeSimbolos);
+        this.resetToken();
+        
         if(data.caractere === undefined){
           this.token.classeToken = 'EOF';
           this.token.tipoToken = 'NULO';
@@ -81,8 +81,6 @@ const maquinaDeterministica = {
         
         if(isAlfabeto(data.caractere)){
           if(isLetra(data.caractere)){
-            this.token.classeToken = 'ID';
-            this.token.tipoToken = 'NULO'; 
             this.changeState(1);
           } else if(data.caractere == '<'){
             this.changeState(2); 
@@ -128,26 +126,24 @@ const maquinaDeterministica = {
     },
     1: {
       readCharacter: function(data){
+        this.token.classeToken = 'ID';
+        this.token.tipoToken = 'NULO'; 
         if(data.caractere !== undefined){
           if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
             this.token.lexemaToken = this.token.lexemaToken + data.caractere;
             return null;
           } 
         }
-        
-        if(tabelaDeSimbolos.find(token => {
-          token.lexemaToken === this.token.lexemaToken
-          console.log("Lexema: " + token.lexemaToken);
-        })){ 
-          
-          this.token = tabelaDeSimbolos.find(token => token.lexemaToken === this.token.lexemaToken);
+       
+        if(tabelaDeSimbolos.find(({ lexemaToken }) => lexemaToken === this.token.lexemaToken)){ 
+          let result = tabelaDeSimbolos.find(({ lexemaToken }) => lexemaToken === this.token.lexemaToken);
+          this.token = result
         }
         else {
           tabelaDeSimbolos.push(this.token);
         }
 
         this.changeState(0)
-        console.table(tabelaDeSimbolos);
         return this.token;
       }
     },
@@ -427,6 +423,11 @@ const maquinaDeterministica = {
   },
   changeState(novoEstado){
     this.estado = novoEstado;
+  },
+  resetToken(){
+    this.token.classeToken = '';
+    this.token.lexemaToken = '';
+    this.token.tipoToken = '';
   }
 }
 
@@ -461,49 +462,6 @@ function SCANNER(data, maquina){
   }
 }
 
-/*function INSERT(token){
-  console.log("INSERT SENDO CHAMADA!!!!!!!!!!!!!!!!!!!!!!!");
-  //console.log("ANTES DO INSERT");
-  //console.table(tabelaDeSimbolos);
-  
-  let newToken = token;
-  //newToken = token;
-  tabelaDeSimbolos.push(newToken)
-  
-  //console.log("DEPOIS DO INSERT");
-  //console.table(tabelaDeSimbolos);
-}
-
-function SEARCH(token){
-  //console.log("SEARCH(token):", token)
-  for(let i = 0; i < tabelaDeSimbolos.length; i++){
-    //console.log("i:|" + i + "| tabelaDeSimbolos[i].lexemaToken:|" + tabelaDeSimbolos[i].lexemaToken + "|")
-    if(tabelaDeSimbolos[i].lexemaToken === token.lexemaToken)
-      return token;
-  }
-    
-  return false;
-}
-
-function UPDATE(token){
-
-  if (SEARCH(token)) {
-    return SEARCH(token);
-  } else {
-    INSERT(token);
-  }
-  for(let i = 0; i < tabelaDeSimbolos.length; i++) {
-    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken){
-      return{
-        classeToken: tabelaDeSimbolos[i].classeToken,
-        tipoToken: tabelaDeSimbolos[i].tipoToken,
-        lexemaToken: tabelaDeSimbolos[i].lexemaToken
-      }
-    }
-  }
-  console.log("UPDATE FOI CHAMADA!")
-}*/
-
 function main(){
   const fs = require('fs');
   const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
@@ -516,29 +474,11 @@ function main(){
     if(token?.classeToken == "ERRO") continue
     
     console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
+    console.table(tabelaDeSimbolos);
+    
     if(token?.classeToken == 'EOF') break 
   }
 }
 
 main()
 console.table(tabelaDeSimbolos)
-// console.log(isAlfabeto(' '))
-// console.log(isLetra(' '))
-// console.log(isDigito(' '))
-// console.log(isCaractereDeQuebra(' '))
-
-// let tabelaTeste = [
-// 	{classeToken: 'classe1'    ,tipoToken: 'tipo1'    ,lexemaToken: 'lexema1'},
-// 	{classeToken: 'classe2' ,tipoToken: 'tipo2' ,lexemaToken: 'lexema2'},
-// 	{classeToken: 'classe3'    ,tipoToken: 'tipo3'    ,lexemaToken: 'lexema3'},
-
-// ]
-
-// console.table(tabelaTeste);
-// objetoTeste = {classeToken: 'classe4'    ,tipoToken: 'tipo4'    ,lexemaToken: 'lexema4'}
-// objetoTeste2 = {classeToken: 'classe5'    ,tipoToken: 'tipo5'    ,lexemaToken: 'lexema5'}
-// tabelaTeste.push(objetoTeste);
-// tabelaTeste.push(objetoTeste2);
-// objetoTeste2 = {classeToken: 'mudado'    ,tipoToken: 'mudado'    ,lexemaToken: 'mudado'}
-// tabelaTeste.push(objetoTeste2);
-// console.table(tabelaTeste);

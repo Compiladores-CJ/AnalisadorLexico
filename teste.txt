@@ -1,1 +1,1 @@
-id inicio varinicio var23 gy_n2 gy_n3 gy_n4
+real varinicio inicio varfim fim fimse
