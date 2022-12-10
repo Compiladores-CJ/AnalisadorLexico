@@ -68,9 +68,9 @@ const maquinaDeterministica = {
   transitions: {
     0: {
       readCharacter: function(data){
-        console.log("ESTADO:|" + this.estado + "| CARACTERE:|" + data.caractere + '|');
-        console.table(tabelaDeSimbolos);
-        if(data.caractere == undefined){
+        //console.log("ESTADO:|" + this.estado + "| CARACTERE:|" + data.caractere + '|');
+        //console.table(tabelaDeSimbolos);
+        if(data.caractere === undefined){
           this.token.classeToken = 'EOF';
           this.token.tipoToken = 'NULO';
           this.token.lexemaToken = '';
@@ -128,32 +128,25 @@ const maquinaDeterministica = {
     },
     1: {
       readCharacter: function(data){
-        if(data.caractere != undefined){
+        if(data.caractere !== undefined){
           if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
             this.token.lexemaToken = this.token.lexemaToken + data.caractere;
-            console.log("        ESTADO:|" + this.estado + "| CARACTERE:|" + data.caractere + '|');
-            console.table(tabelaDeSimbolos);
             return null;
           } 
         }
         
-        let tokenParaInserir = this.token;
-        console.log("UPDATE TOKEN ZOADO:", tokenParaInserir)
-        if(SEARCH(tokenParaInserir)){ 
-          //console.log("    ELE ESTA NA TABELA DE SIMBOLOS")
-          // let updatedToken = UPDATE(this.token)
-          // this.token = updatedToken;
-          console.log("UPDATE TOKEN ZOADO:", tokenParaInserir)
-          UPDATE(tokenParaInserir)
+        if(tabelaDeSimbolos.find(token => {
+          token.lexemaToken === this.token.lexemaToken
+          console.log("Lexema: " + token.lexemaToken);
+        })){ 
+          
+          this.token = tabelaDeSimbolos.find(token => token.lexemaToken === this.token.lexemaToken);
         }
         else {
-          //console.log("     ELE NAO ESTA NA TABELA DE SIMBOLOS, INSERINDO O TOKEN: " + this.token.lexemaToken)
-          console.log("INSERT TOKEN ZOADO:", tokenParaInserir)
-          INSERT(this.token);
+          tabelaDeSimbolos.push(this.token);
         }
 
         this.changeState(0)
-        console.log("ESTADO:|" + this.estado + "| CARACTERE:|" + data.caractere + '|');
         console.table(tabelaDeSimbolos);
         return this.token;
       }
@@ -437,16 +430,13 @@ const maquinaDeterministica = {
   }
 }
 
-function SCANNER(data){
-  let maquina = Object.create(maquinaDeterministica)
-  let token
+function SCANNER(data, maquina){
+  let token = null;
   
-  //console.log("\nMAQUINA PRIMEIRO ESTADO: " + maquina.estado);
-  //console.log('DATA LENGTH:' + data.length);
   for(let i = cabecote; i < data.length + 1; i++){
     token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
     
-    if(token == null){
+    if(token === null || token === undefined){
       if(i != data.length) updateLinhaEColuna(data[i]);
       continue
     }
@@ -471,7 +461,7 @@ function SCANNER(data){
   }
 }
 
-function INSERT(token){
+/*function INSERT(token){
   console.log("INSERT SENDO CHAMADA!!!!!!!!!!!!!!!!!!!!!!!");
   //console.log("ANTES DO INSERT");
   //console.table(tabelaDeSimbolos);
@@ -488,14 +478,20 @@ function SEARCH(token){
   //console.log("SEARCH(token):", token)
   for(let i = 0; i < tabelaDeSimbolos.length; i++){
     //console.log("i:|" + i + "| tabelaDeSimbolos[i].lexemaToken:|" + tabelaDeSimbolos[i].lexemaToken + "|")
-    if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken)
-      return true;
+    if(tabelaDeSimbolos[i].lexemaToken === token.lexemaToken)
+      return token;
   }
     
   return false;
 }
 
 function UPDATE(token){
+
+  if (SEARCH(token)) {
+    return SEARCH(token);
+  } else {
+    INSERT(token);
+  }
   for(let i = 0; i < tabelaDeSimbolos.length; i++) {
     if(tabelaDeSimbolos[i].lexemaToken == token.lexemaToken){
       return{
@@ -506,15 +502,16 @@ function UPDATE(token){
     }
   }
   console.log("UPDATE FOI CHAMADA!")
-}
+}*/
 
 function main(){
-  const fs = require('fs')
+  const fs = require('fs');
   const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
   //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  let maquina = Object.create(maquinaDeterministica);
   
   while(true){
-    let token = SCANNER(data)
+    let token = SCANNER(data, maquina)
     
     if(token?.classeToken == "ERRO") continue
     
@@ -525,23 +522,23 @@ function main(){
 
 main()
 console.table(tabelaDeSimbolos)
-console.log(isAlfabeto(' '))
-console.log(isLetra(' '))
-console.log(isDigito(' '))
-console.log(isCaractereDeQuebra(' '))
+// console.log(isAlfabeto(' '))
+// console.log(isLetra(' '))
+// console.log(isDigito(' '))
+// console.log(isCaractereDeQuebra(' '))
 
-let tabelaTeste = [
-	{classeToken: 'classe1'    ,tipoToken: 'tipo1'    ,lexemaToken: 'lexema1'},
-	{classeToken: 'classe2' ,tipoToken: 'tipo2' ,lexemaToken: 'lexema2'},
-	{classeToken: 'classe3'    ,tipoToken: 'tipo3'    ,lexemaToken: 'lexema3'},
+// let tabelaTeste = [
+// 	{classeToken: 'classe1'    ,tipoToken: 'tipo1'    ,lexemaToken: 'lexema1'},
+// 	{classeToken: 'classe2' ,tipoToken: 'tipo2' ,lexemaToken: 'lexema2'},
+// 	{classeToken: 'classe3'    ,tipoToken: 'tipo3'    ,lexemaToken: 'lexema3'},
 
-]
+// ]
 
-console.table(tabelaTeste);
-objetoTeste = {classeToken: 'classe4'    ,tipoToken: 'tipo4'    ,lexemaToken: 'lexema4'}
-objetoTeste2 = {classeToken: 'classe5'    ,tipoToken: 'tipo5'    ,lexemaToken: 'lexema5'}
-tabelaTeste.push(objetoTeste);
-tabelaTeste.push(objetoTeste2);
-objetoTeste2 = {classeToken: 'mudado'    ,tipoToken: 'mudado'    ,lexemaToken: 'mudado'}
-tabelaTeste.push(objetoTeste2);
-console.table(tabelaTeste);
+// console.table(tabelaTeste);
+// objetoTeste = {classeToken: 'classe4'    ,tipoToken: 'tipo4'    ,lexemaToken: 'lexema4'}
+// objetoTeste2 = {classeToken: 'classe5'    ,tipoToken: 'tipo5'    ,lexemaToken: 'lexema5'}
+// tabelaTeste.push(objetoTeste);
+// tabelaTeste.push(objetoTeste2);
+// objetoTeste2 = {classeToken: 'mudado'    ,tipoToken: 'mudado'    ,lexemaToken: 'mudado'}
+// tabelaTeste.push(objetoTeste2);
+// console.table(tabelaTeste);
