@@ -1,3 +1,1 @@
-id teste inicio var23 varinicio #
-#
-#
+id : ' [ ] ! ? 

@@ -109,7 +109,13 @@ const maquinaDeterministica = {
             this.changeState(20); 
           } else if(isCaractereDeQuebra(data.caractere)){
             this.changeState(0);
-          }  
+          } else if(isDemaisCaracteres(data.caractere)){
+            this.changeState(0);
+            console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
+            this.token.classeToken = 'ERROR';
+            this.token.tipoToken = 'NULO';
+            return this.token;
+          }
         }
         else{
           this.changeState(0);
@@ -128,31 +134,24 @@ const maquinaDeterministica = {
             console.log("        ESTADO:|" + this.estado + "| CARACTERE:|" + data.caractere + '|');
             console.table(tabelaDeSimbolos);
             return null;
-          }
-          else{
-            let tokenParaInserir = this.token;
-            console.log("UPDATE TOKEN ZOADO:", tokenParaInserir)
-            if(SEARCH(tokenParaInserir)){ 
-              //console.log("    ELE ESTA NA TABELA DE SIMBOLOS")
-              // let updatedToken = UPDATE(this.token)
-              // this.token = updatedToken;
-              console.log("UPDATE TOKEN ZOADO:", tokenParaInserir)
-              UPDATE(tokenParaInserir)
-            }
-            else {
-              //console.log("     ELE NAO ESTA NA TABELA DE SIMBOLOS, INSERINDO O TOKEN: " + this.token.lexemaToken)
-              console.log("INSERT TOKEN ZOADO:", tokenParaInserir)
-              INSERT(tokenParaInserir);
-            }
-
-
-          }
-          
-          //console.log("  ACHEI UM ID: " + this.token.lexemaToken)
-          //console.log("  Tabela de Simbolos antes da SEARCH")
-          //console.table(tabelaDeSimbolos);
-        
+          } 
         }
+        
+        let tokenParaInserir = this.token;
+        console.log("UPDATE TOKEN ZOADO:", tokenParaInserir)
+        if(SEARCH(tokenParaInserir)){ 
+          //console.log("    ELE ESTA NA TABELA DE SIMBOLOS")
+          // let updatedToken = UPDATE(this.token)
+          // this.token = updatedToken;
+          console.log("UPDATE TOKEN ZOADO:", tokenParaInserir)
+          UPDATE(tokenParaInserir)
+        }
+        else {
+          //console.log("     ELE NAO ESTA NA TABELA DE SIMBOLOS, INSERINDO O TOKEN: " + this.token.lexemaToken)
+          console.log("INSERT TOKEN ZOADO:", tokenParaInserir)
+          INSERT(this.token);
+        }
+
         this.changeState(0)
         console.log("ESTADO:|" + this.estado + "| CARACTERE:|" + data.caractere + '|');
         console.table(tabelaDeSimbolos);
@@ -287,7 +286,7 @@ const maquinaDeterministica = {
             return null;
           }
         }
-        console.log("ERRO LÉXICO – Palavra não pertence à linguagem. Linha " + linha + ", coluna " + coluna)
+        console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
         this.changeState(0);
         this.token.classeToken = 'ERROR';
         this.token.tipoToken = 'NULO';
@@ -326,7 +325,7 @@ const maquinaDeterministica = {
             return null;
           }
         }
-        console.log("ERRO LÉXICO – Palavra não pertence à linguagem. Linha " + linha + ", coluna " + coluna)
+        console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
         this.changeState(0);
         this.token.classeToken = 'ERROR';
         this.token.tipoToken = 'NULO';
@@ -360,7 +359,7 @@ const maquinaDeterministica = {
             return null;
           }
         }
-        console.log("ERRO LÉXICO – Palavra não pertence à linguagem. Linha " + linha + ", coluna " + coluna)
+        console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
         this.changeState(0);
         this.token.classeToken = 'ERROR';
         this.token.tipoToken = 'NULO';
@@ -428,7 +427,6 @@ const maquinaDeterministica = {
     
     if(action){
       result = action.apply(maquinaDeterministica, ...payload);
-      
       return result
     } else {
       //action is not valid for current state
@@ -454,7 +452,7 @@ function SCANNER(data){
     }
     else {
       cabecote = i
-      if(token.classeToken == 'ERROR' && isAlfabeto(token.lexemaToken) == false){
+      if(token.classeToken == 'ERROR' && (!isAlfabeto(token.lexemaToken) || isDemaisCaracteres(token.lexemaToken))){
         cabecote = i + 1
         updateLinhaEColuna(data[i]);
       }
@@ -474,6 +472,7 @@ function SCANNER(data){
 }
 
 function INSERT(token){
+  console.log("INSERT SENDO CHAMADA!!!!!!!!!!!!!!!!!!!!!!!");
   //console.log("ANTES DO INSERT");
   //console.table(tabelaDeSimbolos);
   
