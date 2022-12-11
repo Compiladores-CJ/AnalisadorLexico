@@ -473,10 +473,8 @@ function main(){
     let token = SCANNER(data, maquina)
     
     tabelaDeTokens.push(Object.assign({}, token));
-    //console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
   
     if(token?.classeToken == 'EOF') break;
-    
   }
 }
 
