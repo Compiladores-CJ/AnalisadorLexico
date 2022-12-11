@@ -1,1 +1,1 @@
-real varinicio inicio varfim fim fimse
+varfim varinicio var inicio id id_4

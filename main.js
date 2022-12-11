@@ -474,7 +474,7 @@ function main(){
     if(token?.classeToken == "ERRO") continue
     
     console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
-    console.table(tabelaDeSimbolos);
+    //console.table(tabelaDeSimbolos);
     
     if(token?.classeToken == 'EOF') break 
   }
