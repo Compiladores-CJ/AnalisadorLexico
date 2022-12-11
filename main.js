@@ -75,7 +75,6 @@ const maquinaDeterministica = {
         if(data.caractere === undefined){
           this.token.classeToken = 'EOF';
           this.token.tipoToken = 'NULO';
-          this.token.lexemaToken = '';
           return this.token;
         }
         
@@ -111,7 +110,7 @@ const maquinaDeterministica = {
             this.changeState(0);
           } else if(isDemaisCaracteres(data.caractere)){
             this.changeState(0);
-            console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
+            console.log("ERRO LÉXICO – Palavra \"" + this.token.lexemaToken + "\" não reconhecida. Linha " + linha + ", coluna " + coluna)
             this.token.classeToken = 'ERROR';
             this.token.tipoToken = 'NULO';
             return this.token;
@@ -119,7 +118,7 @@ const maquinaDeterministica = {
         }
         else{
           this.changeState(0);
-          console.log("ERRO LÉXICO - Caractere inválido na linguagem. Linha " + linha + ", coluna " + coluna)
+          console.log("ERRO LÉXICO - Caractere \"" + this.token.lexemaToken + "\" inválido na linguagem. Linha " + linha + ", coluna " + coluna)
           this.token.classeToken = 'ERROR';
           this.token.tipoToken = 'NULO';
           return this.token;
@@ -277,7 +276,7 @@ const maquinaDeterministica = {
             return null;
           }
         }
-        console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
+        console.log("ERRO LÉXICO – Palavra \"" + this.token.lexemaToken + "\" não reconhecida. Linha " + linha + ", coluna " + coluna)
         this.changeState(0);
         this.token.classeToken = 'ERROR';
         this.token.tipoToken = 'NULO';
@@ -316,7 +315,7 @@ const maquinaDeterministica = {
             return null;
           }
         }
-        console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
+        console.log("ERRO LÉXICO – Palavra \"" + this.token.lexemaToken + "\" não reconhecida. Linha " + linha + ", coluna " + coluna)
         this.changeState(0);
         this.token.classeToken = 'ERROR';
         this.token.tipoToken = 'NULO';
@@ -350,7 +349,7 @@ const maquinaDeterministica = {
             return null;
           }
         }
-        console.log("ERRO LÉXICO – Palavra não reconhecida. Linha " + linha + ", coluna " + coluna)
+        console.log("ERRO LÉXICO – Palavra \"" + this.token.lexemaToken + "\" não reconhecida. Linha " + linha + ", coluna " + coluna)
         this.changeState(0);
         this.token.classeToken = 'ERROR';
         this.token.tipoToken = 'NULO';
@@ -440,16 +439,15 @@ function SCANNER(data, maquina){
     token = maquina.dispatch("readCharacter", [{caractere: data[i]}]);
     
     if(token === null || token === undefined){
-      if(i != data.length) updateLinhaEColuna(data[i]);
-      continue
+      if(i !== data.length) updateLinhaEColuna(data[i]);
     }
     else {
       cabecote = i
       if(token.classeToken == 'ERROR' && (!isAlfabeto(token.lexemaToken) || isDemaisCaracteres(token.lexemaToken))){
-        cabecote = i + 1
-        updateLinhaEColuna(data[i]);
+        if(data[i] != undefined)cabecote = i + 1
+        if(i !== data.length) updateLinhaEColuna(data[i]);
       }
-      else return token
+      return token
     }
   }
   
@@ -474,14 +472,11 @@ function main(){
   while(true){
     let token = SCANNER(data, maquina)
     
-
-    if(token?.classeToken == "ERRO") continue
-    
-    //console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
     tabelaDeTokens.push(Object.assign({}, token));
-    //console.table(tabelaDeSimbolos);
-    
+    //console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
+  
     if(token?.classeToken == 'EOF') break;
+    
   }
 }
 
