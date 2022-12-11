@@ -77,50 +77,55 @@ const maquinaDeterministica = {
 	transitions: {
 	  0: {
 			readCharacter: function(data){
-				console.log("HEEEEEY:", data.caractere)
-				this.verificacaoComum(data.caractere, () => {
-					if(isLetra(data.caractere)){
-						console.log("HEEEEEY:", data.caractere)
-						this.changeState(1);
-					} else if(data.caractere == '<'){
-						this.changeState(2); 
-					} else if(data.caractere == '='){
-						this.changeState(3); 
-					} else if(data.caractere == '>'){
-						this.changeState(5); 
-					} else if(['+','-','*','/'].includes(data.caractere)){
-						this.changeState(6); 
-					} else if(data.caractere == '\"'){
-						this.changeState(7); 
-					} else if(data.caractere == ';'){
-						this.changeState(9); 
-					} else if(data.caractere == ','){
-						this.changeState(10); 
-					} else if(isDigito(data.caractere)){
-						this.changeState(11);
-					} else if(data.caractere == '('){
-						this.changeState(18);
-					} else if(data.caractere == ')'){
-						this.changeState(19);
-					} else if(data.caractere == '{'){
-						this.changeState(20);
-					} else {
-						console.log("EITA, COMO VIM PARAR AQUI!")
-					}
-				})
-				return {};
+				if(isLetra(data.caractere)){
+					expandirLexema(data.caractere);
+					this.changeState(1);
+				} else if(data.caractere == '<'){
+					expandirLexema(data.caractere);
+					this.changeState(2); 
+				} else if(data.caractere == '='){
+					expandirLexema(data.caractere);
+					this.changeState(3); 
+				} else if(data.caractere == '>'){
+					expandirLexema(data.caractere);
+					this.changeState(5); 
+				} else if(['+','-','*','/'].includes(data.caractere)){
+					expandirLexema(data.caractere);
+					this.changeState(6); 
+				} else if(data.caractere == '\"'){
+					expandirLexema(data.caractere);
+					this.changeState(7); 
+				} else if(data.caractere == ';'){
+					expandirLexema(data.caractere);
+					this.changeState(9); 
+				} else if(data.caractere == ','){
+					expandirLexema(data.caractere);
+					this.changeState(10); 
+				} else if(isDigito(data.caractere)){
+					expandirLexema(data.caractere);
+					this.changeState(11);
+				} else if(data.caractere == undefined){
+					this.changeState(17);
+				} else if(data.caractere == '('){
+					expandirLexema(data.caractere);
+					this.changeState(18);
+				} else if(data.caractere == ')'){
+					expandirLexema(data.caractere);
+					this.changeState(19);
+				} else if(data.caractere == '{'){
+					expandirLexema(data.caractere);
+					this.changeState(20);
+				} 
 			}
-			},
+		},
 	  1: {
 			readCharacter: function(data){
-				this.verificacaoComum(data.caractere, () => {
-					if(isLetra(data.caractere) || isDigito(data.caractere) || data.caractere == '_'){
-						this.expandirLexema(data.caractere);
-						return {};
-					} else{
-						return {classeToken: 'ID', tipoToken: 'NULO', lexemaToken: lexema};
-					}
-				})
+				if(isLetra(data.caractere || isDigito(data.caractere) || data.caractere === '_')){
+					expandirLexema(data.caractere);
+					return {};
+				}
+				changeState(0);
+				return {classeToken: 'ID', tipoToken: 'NULO', lexemaToken: lexema};
 			}
 	  },
 	  2:{

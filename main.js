@@ -59,6 +59,8 @@ let tabelaDeSimbolos = [
   {classeToken: 'real'      ,tipoToken: 'real'      ,lexemaToken: 'real'      }
 ];
 
+let tabelaDeTokens = [];
+
 // Vamos implementar o automato criado pelo Julio
 const maquinaDeterministica = {
   estado: 0,
@@ -135,12 +137,12 @@ const maquinaDeterministica = {
           } 
         }
        
-        if(tabelaDeSimbolos.find(({ lexemaToken }) => lexemaToken === this.token.lexemaToken)){ 
-          let result = tabelaDeSimbolos.find(({ lexemaToken }) => lexemaToken === this.token.lexemaToken);
-          this.token = result
+        let result = tabelaDeSimbolos.find(({ lexemaToken }) => lexemaToken === this.token.lexemaToken);
+        if(result !== undefined){
+          this.token = Object.assign({}, result);
         }
         else {
-          tabelaDeSimbolos.push(this.token);
+          tabelaDeSimbolos.push(Object.assign({}, this.token));
         }
 
         this.changeState(0)
@@ -464,21 +466,25 @@ function SCANNER(data, maquina){
 
 function main(){
   const fs = require('fs');
-  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
-  //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  //const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   let maquina = Object.create(maquinaDeterministica);
-  
+  let cont = 0;
+
   while(true){
     let token = SCANNER(data, maquina)
     
+
     if(token?.classeToken == "ERRO") continue
     
-    console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
+    //console.log("Classe: " + token?.classeToken + ", Lexema: " + token?.lexemaToken + ", Tipo: " + token?.tipoToken)
+    tabelaDeTokens.push(Object.assign({}, token));
     //console.table(tabelaDeSimbolos);
     
-    if(token?.classeToken == 'EOF') break 
+    if(token?.classeToken == 'EOF') break;
   }
 }
 
 main()
+console.table(tabelaDeTokens)
 console.table(tabelaDeSimbolos)
