@@ -328,12 +328,7 @@ const maquinaDeterministica = {
           if(isDigito(data.caractere)){
             this.token.lexemaToken = this.token.lexemaToken + data.caractere;
             return null
-          }
-          if(data.caractere == "+" || data.caractere == "-"){
-            this.token.lexemaToken = this.token.lexemaToken + data.caractere;
-            this.changeState(16)
-            return null;
-          }
+          }  
         }
         this.changeState(0)
         this.token.classeToken = 'NUM';
@@ -464,8 +459,8 @@ function SCANNER(data, maquina){
 
 function main(){
   const fs = require('fs');
-  //const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
-  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   let maquina = Object.create(maquinaDeterministica);
   let cont = 0;
 
