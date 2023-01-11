@@ -1,3 +1,8 @@
+const tab1 = require('./tabelaSLRAction');
+const tab2 = require('./tabelaSLRGoto');
+const tabela = Object.assign({}, tab1, tab2);
+
+
 function isCaractereDeQuebra(caractere) {
   codASCII = caractere.charCodeAt(0);
   // código ASCII para ['quebra de linha', 'Carriage return', 'espaço']
@@ -474,5 +479,7 @@ function main(){
 }
 
 main()
-console.table(tabelaDeTokens)
-console.table(tabelaDeSimbolos)
+//console.table(tabelaDeTokens)
+//console.table(tabelaDeSimbolos)
+
+console.log(tabela.SLRAction);
