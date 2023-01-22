@@ -1,7 +1,10 @@
+const { Console } = require('console');
+const objetoGramatica = require('./gramatica')
 const tab1 = require('./tabelaSLRAction');
 const tab2 = require('./tabelaSLRGoto');
-const tabela = Object.assign({}, tab1, tab2);
 
+const tabela = Object.assign({}, tab1, tab2);
+const gramatica = objetoGramatica.Gramatica;
 
 function isCaractereDeQuebra(caractere) {
   codASCII = caractere.charCodeAt(0);
@@ -462,24 +465,111 @@ function SCANNER(data, maquina){
   }
 }
 
-function main(){
+function PARSER(){
+  let cont = 1
   const fs = require('fs');
   const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
   //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
-  let maquina = Object.create(maquinaDeterministica);
-  let cont = 0;
-
-  while(true){
-    let token = SCANNER(data, maquina)
-    
-    tabelaDeTokens.push(Object.assign({}, token));
   
-    if(token?.classeToken == 'EOF') break;
+  //lexico
+  let maquina = Object.create(maquinaDeterministica);
+  //sintatico
+  let pilha = [];
+  pilha.push("$")
+  pilha.push("0")
+  
+  let token = SCANNER(data, maquina)
+  tabelaDeTokens.push(Object.assign({}, token));
+  let action
+  let regra
+  
+  while(true){
+    console.log("\n-------------------------------------------\nIteração: " + cont)
+    let estado = pilha[pilha.length - 1];
+    console.log("--- VARIAVEIS INICIO---")
+    console.log({pilha})
+    console.log({token})
+    console.log({estado})
+    console.log("--- VARIAVEIS INICIO---")
+
+    if(pertenceATabelaDeSimbolos(token)) {
+      // console.log("Acessando a tabela de Ações!!");
+      action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
+    }
+    else {
+      // console.log("Acessando a tabela GoTo!!");
+      action = tabela.SLRGoto[estado][token.classeToken.toLowerCase()]
+    }
+    console.log({action});
+    
+    if(action[0] !== '' && action[0] === 'S'){
+      console.log("FAZENDO SHIFT!");
+      // empilha um estado
+      pilha.push(action.slice(1));
+      token = SCANNER(data, maquina)
+      
+    } else 
+        if(action[0] !== '' && action[0] === 'R'){
+        console.log("FAZENDO REDUCE!");
+        // reduzir uma regra
+        regra = gramatica[action.slice(1)-1].producao;
+
+        let removeDaPilha = regra.split(" ").length;
+        console.log(removeDaPilha);
+        pilha.splice(-removeDaPilha, removeDaPilha);
+        console.log({pilha})
+
+        estado = pilha[pilha.length - 1];
+      
+        //errado! Arruma
+        console.log({estado})
+        console.log('action.slice(1):', action.slice(1))
+        pilha.push(tabela.SLRGoto[estado][gramatica[action.slice(1) - 1].naoTerminal].toString());
+        //errado, arrumar
+
+        console.log("Redução feita: " + gramatica[action.slice(1)-1].naoTerminal + " -> " + gramatica[action.slice(1)-1].producao)
+    }else{
+      //ERRO
+    }
+    cont++;
+    if(token?.classeToken === 'EOF') break;
+  }
+
+  function pertenceATabelaDeSimbolos(tokenTeste) {
+    let result = tabelaDeSimbolos.find(element => element.lexemaToken === tokenTeste.lexemaToken)
+
+    if(result !== undefined)
+      return true;
+    else
+      return false;
   }
 }
 
-main()
-//console.table(tabelaDeTokens)
+// console.table(tabelaDeTokens)
 //console.table(tabelaDeSimbolos)
 
-console.log(tabela.SLRAction);
+// console.log(tabela.SLRAction);
+
+PARSER()
+
+// const array1 = [
+// 	{classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'    },
+// 	{classeToken: 'varinicio' ,tipoToken: 'varinicio' ,lexemaToken: 'varinicio' },
+// 	{classeToken: 'varfim'    ,tipoToken: 'varfim'    ,lexemaToken: 'varfim'    },
+// ];
+
+// const objeto1 = {classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'    };
+
+// let result = tabelaDeSimbolos.find(element => element.classeToken === objeto1.classeToken)
+
+// if(result !== undefined)
+//   console.log("Existe esse objeto no Array", result)
+// else
+//   console.log("Não existe o objeto no array");
+
+// console.log(tabela.SLRAction[0].inicio);
+
+// pilha = [ '$', '0', '2', '4', '50' ]
+// pilha.splice(-1, 3)
+// console.log(pilha);
+

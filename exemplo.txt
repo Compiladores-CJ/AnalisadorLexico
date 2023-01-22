@@ -1,4 +1,4 @@
-inicio #
+inicio
   varinicio
     literal A;
     inteiro B, D, E;
@@ -28,5 +28,5 @@ inicio #
   escreva "\n";
   escreva C;
   escreva "\n";
-  escreva A; {
+  escreva A;
 fim
