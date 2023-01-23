@@ -468,70 +468,79 @@ function SCANNER(data, maquina){
 function PARSER(){
   let cont = 1
   const fs = require('fs');
-  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
-  //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  // const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   
   //lexico
   let maquina = Object.create(maquinaDeterministica);
   //sintatico
   let pilha = [];
-  pilha.push("$")
+  pilha.push("S")
   pilha.push("0")
   
   let token = SCANNER(data, maquina)
   tabelaDeTokens.push(Object.assign({}, token));
   let action
   let regra
-  
+  let estado
+  let contadorDeReducao = 1;
+  //Variavel temporaria para debbug do projeto
+
   while(true){
     console.log("\n-------------------------------------------\nIteração: " + cont)
-    let estado = pilha[pilha.length - 1];
+    cont++;
+    estado = pilha[pilha.length - 1];
     console.log("--- VARIAVEIS INICIO---")
-    console.log({pilha})
-    console.log({token})
-    console.log({estado})
+    console.log("       PILHA: ", {pilha})
+    console.log("       TOKEN: ", {token})
+    console.log("       ESTADO: ", {estado})
     console.log("--- VARIAVEIS INICIO---")
 
-    if(pertenceATabelaDeSimbolos(token)) {
-      // console.log("Acessando a tabela de Ações!!");
+    if(isTerminal(token)) {
+      console.log("Acessando a tabela de Ações!!");
       action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
     }
     else {
-      // console.log("Acessando a tabela GoTo!!");
-      action = tabela.SLRGoto[estado][token.classeToken.toLowerCase()]
+      console.log("Acessando a tabela GoTo!!");
+      action = tabela.SLRGoto[estado][token.classeToken]
     }
     console.log({action});
     
-    if(action[0] !== '' && action[0] === 'S'){
+    if(action !== '' && action[0] === 'S'){
       console.log("FAZENDO SHIFT!");
       // empilha um estado
       pilha.push(action.slice(1));
       token = SCANNER(data, maquina)
+      //console.log("TOKEN DIRETO DO SCANNER:", token);
       
-    } else 
-        if(action[0] !== '' && action[0] === 'R'){
-        console.log("FAZENDO REDUCE!");
-        // reduzir uma regra
-        regra = gramatica[action.slice(1)-1].producao;
+    } else if(action !== '' && action[0] === 'R'){
+      console.log("FAZENDO REDUCE!");
+      // reduzir uma regra
+      regra = gramatica[action.slice(1)].producao;
 
-        let removeDaPilha = regra.split(" ").length;
-        console.log(removeDaPilha);
-        pilha.splice(-removeDaPilha, removeDaPilha);
-        console.log({pilha})
+      let removeDaPilha = regra.split(" ").length;
+      //console.log(removeDaPilha);
+      pilha.splice(-removeDaPilha, removeDaPilha);
+      //console.log({pilha})
 
-        estado = pilha[pilha.length - 1];
-      
-        //errado! Arruma
-        console.log({estado})
-        console.log('action.slice(1):', action.slice(1))
-        pilha.push(tabela.SLRGoto[estado][gramatica[action.slice(1) - 1].naoTerminal].toString());
-        //errado, arrumar
+      estado = pilha[pilha.length - 1];
+    
+      //errado! Arruma
+      //console.log({estado})
+      //console.log('action.slice(1):', action.slice(1))
+      pilha.push(tabela.SLRGoto[estado][gramatica[action.slice(1)].naoTerminal].toString());
+      //errado, arrumar
 
-        console.log("Redução feita: " + gramatica[action.slice(1)-1].naoTerminal + " -> " + gramatica[action.slice(1)-1].producao)
-    }else{
+      console.log(contadorDeReducao + " - Redução feita: " + gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao)
+      contadorDeReducao++;
+    }else if(action !== '' && action === 'Acc') {
+      //Análise Finalizada e Aceita
+      console.log("Análise Terminou")
+    }else {
       //ERRO
+      console.log("ERRO ERRO ERRO ERRO ERRO ERRO ERRO ERRO ERRO")
+      break;
     }
-    cont++;
     if(token?.classeToken === 'EOF') break;
   }
 
@@ -543,14 +552,22 @@ function PARSER(){
     else
       return false;
   }
+
+  function isTerminal(tokenTeste) {
+    terminais = ["inicio", "varinicio", "varfim", "inteiro", "real", "literal",  "leia", "escreva", "pt_v", "vir",  "lit",  "num", "id",   "atr",  "opa", "se", "ab_p", "fc_p", "entao","opr", "fimse", "fim", "S"]
+    if(terminais.includes(token.classeToken.toLowerCase()))
+      return true;
+    else
+      return false;
+  }
 }
 
 // console.table(tabelaDeTokens)
-//console.table(tabelaDeSimbolos)
-
+// console.table(tabelaDeSimbolos)
 // console.log(tabela.SLRAction);
 
 PARSER()
+
 
 // const array1 = [
 // 	{classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'    },
