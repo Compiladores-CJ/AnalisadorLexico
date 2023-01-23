@@ -475,7 +475,7 @@ function PARSER(){
   let maquina = Object.create(maquinaDeterministica);
   //sintatico
   let pilha = [];
-  pilha.push("S")
+  pilha.push("$")
   pilha.push("0")
   
   let token = SCANNER(data, maquina)
@@ -554,7 +554,7 @@ function PARSER(){
   }
 
   function isTerminal(tokenTeste) {
-    terminais = ["inicio", "varinicio", "varfim", "inteiro", "real", "literal",  "leia", "escreva", "pt_v", "vir",  "lit",  "num", "id",   "atr",  "opa", "se", "ab_p", "fc_p", "entao","opr", "fimse", "fim", "S"]
+    terminais = ["inicio", "varinicio", "varfim", "inteiro", "real", "literal",  "leia", "escreva", "pt_v", "vir",  "lit",  "num", "id",   "atr",  "opa", "se", "ab_p", "fc_p", "entao","opr", "fimse", "fim", "$"]
     if(terminais.includes(token.classeToken.toLowerCase()))
       return true;
     else
