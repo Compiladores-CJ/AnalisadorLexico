@@ -483,74 +483,57 @@ function PARSER(){
   let action
   let regra
   let estado
+  let removeDaPilha
   let contadorDeReducao = 1;
   //Variavel temporaria para debbug do projeto
 
   while(true){
-    console.log("\n-------------------------------------------\nIteração: " + cont)
+    //console.log("\n-------------------------------------------\nIteração: " + cont)
     cont++;
     estado = pilha[pilha.length - 1];
-    console.log("--- VARIAVEIS INICIO---")
-    console.log("       PILHA: ", {pilha})
-    console.log("       TOKEN: ", {token})
-    console.log("       ESTADO: ", {estado})
-    console.log("--- VARIAVEIS INICIO---")
+    //console.log("--- VARIAVEIS INICIO---")
+    //console.log("       PILHA: ", {pilha})
+    //console.log("       TOKEN: " + token.classeToken)
+    //console.log("       ESTADO: ", {estado})
+    //console.log("--- VARIAVEIS INICIO---")
 
-    if(isTerminal(token)) {
-      console.log("Acessando a tabela de Ações!!");
-      action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
+    if(isTerminal(token) || token?.classeToken === 'EOF') {
+      //console.log("Acessando a tabela de Ações!!");
+      if(token?.classeToken === 'EOF') action = tabela.SLRAction[estado].$
+      else action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
     }
     else {
-      console.log("Acessando a tabela GoTo!!");
+      //console.log("Acessando a tabela GoTo!!");
       action = tabela.SLRGoto[estado][token.classeToken]
     }
-    console.log({action});
+    //console.log({action});
     
     if(action !== '' && action[0] === 'S'){
-      console.log("FAZENDO SHIFT!");
-      // empilha um estado
+      //console.log("FAZENDO SHIFT!");
       pilha.push(action.slice(1));
       token = SCANNER(data, maquina)
-      //console.log("TOKEN DIRETO DO SCANNER:", token);
       
     } else if(action !== '' && action[0] === 'R'){
-      console.log("FAZENDO REDUCE!");
-      // reduzir uma regra
+      //console.log("FAZENDO REDUCE!");
       regra = gramatica[action.slice(1)].producao;
 
-      let removeDaPilha = regra.split(" ").length;
-      //console.log(removeDaPilha);
+      removeDaPilha = regra.split(" ").length;
       pilha.splice(-removeDaPilha, removeDaPilha);
-      //console.log({pilha})
 
       estado = pilha[pilha.length - 1];
-    
-      //errado! Arruma
-      //console.log({estado})
-      //console.log('action.slice(1):', action.slice(1))
       pilha.push(tabela.SLRGoto[estado][gramatica[action.slice(1)].naoTerminal].toString());
-      //errado, arrumar
-
+     
       console.log(contadorDeReducao + " - Redução feita: " + gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao)
       contadorDeReducao++;
     }else if(action !== '' && action === 'Acc') {
       //Análise Finalizada e Aceita
-      console.log("Análise Terminou")
-    }else {
+      console.log("Análise Terminou") 
+      break;
+    }else{
       //ERRO
       console.log("ERRO ERRO ERRO ERRO ERRO ERRO ERRO ERRO ERRO")
       break;
     }
-    if(token?.classeToken === 'EOF') break;
-  }
-
-  function pertenceATabelaDeSimbolos(tokenTeste) {
-    let result = tabelaDeSimbolos.find(element => element.lexemaToken === tokenTeste.lexemaToken)
-
-    if(result !== undefined)
-      return true;
-    else
-      return false;
   }
 
   function isTerminal(tokenTeste) {
@@ -567,26 +550,3 @@ function PARSER(){
 // console.log(tabela.SLRAction);
 
 PARSER()
-
-
-// const array1 = [
-// 	{classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'    },
-// 	{classeToken: 'varinicio' ,tipoToken: 'varinicio' ,lexemaToken: 'varinicio' },
-// 	{classeToken: 'varfim'    ,tipoToken: 'varfim'    ,lexemaToken: 'varfim'    },
-// ];
-
-// const objeto1 = {classeToken: 'inicio'    ,tipoToken: 'inicio'    ,lexemaToken: 'inicio'    };
-
-// let result = tabelaDeSimbolos.find(element => element.classeToken === objeto1.classeToken)
-
-// if(result !== undefined)
-//   console.log("Existe esse objeto no Array", result)
-// else
-//   console.log("Não existe o objeto no array");
-
-// console.log(tabela.SLRAction[0].inicio);
-
-// pilha = [ '$', '0', '2', '4', '50' ]
-// pilha.splice(-1, 3)
-// console.log(pilha);
-
