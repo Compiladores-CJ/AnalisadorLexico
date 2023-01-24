@@ -67,6 +67,10 @@ let tabelaDeSimbolos = [
   {classeToken: 'real'      ,tipoToken: 'real'      ,lexemaToken: 'real'      }
 ];
 
+let tabelaDeAnaliseSintatica = [
+  {pilha: "", token: "", action: "" }
+]
+
 let tabelaDeTokens = [];
 
 // Vamos implementar o automato criado pelo Julio
@@ -468,8 +472,8 @@ function SCANNER(data, maquina){
 function PARSER(){
   let cont = 1
   const fs = require('fs');
-  // const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
-  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  // const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   
   //lexico
   let maquina = Object.create(maquinaDeterministica);
@@ -478,43 +482,38 @@ function PARSER(){
   pilha.push("$")
   pilha.push("0")
   
-  let token = SCANNER(data, maquina)
+  let token = SCANNER(data, maquina);
   tabelaDeTokens.push(Object.assign({}, token));
   let action
   let regra
   let estado
   let removeDaPilha
   let contadorDeReducao = 1;
+  let error = false;
   //Variavel temporaria para debbug do projeto
 
   while(true){
-    //console.log("\n-------------------------------------------\nIteração: " + cont)
+    console.log("\n-------------------------------------------\nIteração: " + cont)
     cont++;
     estado = pilha[pilha.length - 1];
     //console.log("--- VARIAVEIS INICIO---")
     //console.log("       PILHA: ", {pilha})
-    //console.log("       TOKEN: " + token.classeToken)
-    //console.log("       ESTADO: ", {estado})
+    console.log("       TOKEN: " + token.classeToken + "; LEXEMA: " + token.lexemaToken)
+    console.log("       ESTADO: ", {estado})
     //console.log("--- VARIAVEIS INICIO---")
 
     if(isTerminal(token) || token?.classeToken === 'EOF') {
-      //console.log("Acessando a tabela de Ações!!");
       if(token?.classeToken === 'EOF') action = tabela.SLRAction[estado].$
       else action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
     }
-    else {
-      //console.log("Acessando a tabela GoTo!!");
-      action = tabela.SLRGoto[estado][token.classeToken]
-    }
+    else action = tabela.SLRGoto[estado][token.classeToken]
+    
     //console.log({action});
     
     if(action !== '' && action[0] === 'S'){
-      //console.log("FAZENDO SHIFT!");
       pilha.push(action.slice(1));
       token = SCANNER(data, maquina)
-      
     } else if(action !== '' && action[0] === 'R'){
-      //console.log("FAZENDO REDUCE!");
       regra = gramatica[action.slice(1)].producao;
 
       removeDaPilha = regra.split(" ").length;
@@ -526,22 +525,35 @@ function PARSER(){
       console.log(contadorDeReducao + " - Redução feita: " + gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao)
       contadorDeReducao++;
     }else if(action !== '' && action === 'Acc') {
-      //Análise Finalizada e Aceita
-      console.log("Análise Terminou") 
+      console.log("Análise Terminou com Sucesso!") 
       break;
-    }else{
-      //ERRO
-      console.log("ERRO ERRO ERRO ERRO ERRO ERRO ERRO ERRO ERRO")
-      break;
+    }else {
+      // erro
+      console.log("       ERRO na linha " + linha + " e coluna " + coluna);
+      if(token?.classeToken === 'EOF'){
+        console.log("Análise Terminou com Erro!!!!!") 
+        break
+      }
+      token = PanicMode(token); 
     }
   }
 
   function isTerminal(tokenTeste) {
     terminais = ["inicio", "varinicio", "varfim", "inteiro", "real", "literal",  "leia", "escreva", "pt_v", "vir",  "lit",  "num", "id",   "atr",  "opa", "se", "ab_p", "fc_p", "entao","opr", "fimse", "fim", "$"]
+
     if(terminais.includes(token.classeToken.toLowerCase()))
       return true;
     else
       return false;
+  }
+
+  function PanicMode(tokenErrado){
+    do {
+      tokenErrado = SCANNER(data, maquina)
+      console.log("       Procurando Token...");
+    } while(tabela.SLRGoto[estado][tokenErrado.classeToken] === ''); 
+
+    return tokenErrado;
   }
 }
 
