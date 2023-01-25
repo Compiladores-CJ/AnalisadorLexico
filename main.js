@@ -1,4 +1,3 @@
-const { Console } = require('console');
 const objetoGramatica = require('./gramatica')
 const tab1 = require('./tabelaSLRAction');
 const tab2 = require('./tabelaSLRGoto');
@@ -67,9 +66,7 @@ let tabelaDeSimbolos = [
   {classeToken: 'real'      ,tipoToken: 'real'      ,lexemaToken: 'real'      }
 ];
 
-let tabelaDeAnaliseSintatica = [
-  {pilha: "", token: "", action: "" }
-]
+let tabelaDeReducoes = [];
 
 let tabelaDeTokens = [];
 
@@ -221,12 +218,21 @@ const maquinaDeterministica = {
     },
     7:{
       readCharacter: function(data){
-        this.token.lexemaToken = this.token.lexemaToken + data.caractere;
-        if(data.caractere == '\"'){
-          this.changeState(8)
-          return null;
+        if(data.caractere != undefined){
+          this.token.lexemaToken = this.token.lexemaToken + data.caractere;
+          if(data.caractere == '\"'){
+            this.changeState(8);
+            return null;
+          }
+          else return null;
         }
-        else return null; 
+        else {
+          console.log("ERRO LÉXICO – Literal não foi fechado, linha " + linha + ", coluna " + coluna)
+          this.changeState(0);
+          this.token.classeToken = 'ERROR';
+          this.token.tipoToken = 'NULO';
+          return this.token;
+        } 
       }
     },
     8:{
@@ -489,26 +495,22 @@ function PARSER(){
   let estado
   let removeDaPilha
   let contadorDeReducao = 1;
-  //Variavel temporaria para debbug do projeto
 
   while(true){
-    console.log("\n-------------------------------------------\nIteração: " + cont)
+    //console.log("\n-------------------------------------------\nIteração: " + cont)
     cont++;
 
     estado = pilha[pilha.length - 1];
-    
-    //console.log("--- VARIAVEIS INICIO---")
+
     //console.log("       PILHA: ", {pilha})
-    console.log("       TOKEN: " + token.classeToken + "; LEXEMA: " + token.lexemaToken)
-    console.log("       ESTADO: ", {estado})
-    //console.log("--- VARIAVEIS INICIO---")
+    //console.log("       TOKEN: " + token.classeToken + "; LEXEMA: " + token.lexemaToken)
+    //console.log("       ESTADO: ", {estado})
 
     if(isTerminal(token) || token?.classeToken === 'EOF') {
       if(token?.classeToken === 'EOF') action = tabela.SLRAction[estado].$
       else action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
     }
     else action = tabela.SLRGoto[estado][token.classeToken]
-    
     //console.log({action});
     
     if(action !== '' && action[0] === 'S'){
@@ -523,16 +525,17 @@ function PARSER(){
       estado = pilha[pilha.length - 1];
       pilha.push(tabela.SLRGoto[estado][gramatica[action.slice(1)].naoTerminal].toString());
      
-      console.log(contadorDeReducao + " - Redução feita: " + gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao)
-      contadorDeReducao++;
+      // console.log(contadorDeReducao + " - Redução feita: " + gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao)
+      
+      stringReducao = gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao;
+      tabelaDeReducoes.push(stringReducao)
+
+      //contadorDeReducao++;
     }else if(action !== '' && action === 'Acc') {
       console.log("Análise Terminou com Sucesso!") 
       break;
     }else {
-      // erro
-      
       avisaErro(estado)
-
       token = PanicMode(token);       
     }
   }
@@ -540,7 +543,7 @@ function PARSER(){
   function isTerminal(tokenTeste) {
     terminais = ["inicio", "varinicio", "varfim", "inteiro", "real", "literal",  "leia", "escreva", "pt_v", "vir",  "lit",  "num", "id", "atr",  "opa", "se", "ab_p", "fc_p", "entao","opr", "fimse", "fim", "$"]
 
-    if(terminais.includes(token.classeToken.toLowerCase()))
+    if(terminais.includes(tokenTeste.classeToken.toLowerCase()))
       return true;
     else
       return false;
@@ -549,7 +552,7 @@ function PARSER(){
   function PanicMode(tokenErrado){
     do {
       tokenErrado = SCANNER(data, maquina)
-      console.log("       Procurando Token...");
+      //console.log("       Procurando Token...");
     } while(tabela.SLRAction[estado][tokenErrado.classeToken] === '');
 
     return tokenErrado;
@@ -587,8 +590,12 @@ function PARSER(){
   }
 }
 
-// console.table(tabelaDeTokens)
-// console.table(tabelaDeSimbolos)
-// console.log(tabela.SLRAction);
+//console.table(tabelaDeTokens)
+//console.table(tabelaDeSimbolos)
+//console.log(tabela.SLRAction);
+//console.log(tabela.SLRGoto);
+//console.log(gramatica);
 
 PARSER()
+
+console.table(tabelaDeReducoes)
