@@ -478,8 +478,8 @@ function SCANNER(data, maquina){
 function PARSER(){
   let cont = 1
   const fs = require('fs');
-  //const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
-  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   
   //lexico
   let maquina = Object.create(maquinaDeterministica);
@@ -495,16 +495,20 @@ function PARSER(){
   let estado
   let removeDaPilha
   let contadorDeReducao = 0;
+  let flagErro = false;
 
   while(true){
     
     estado = pilha[pilha.length - 1];
 
-    if(isTerminal(token) || (token && token.classeToken === 'EOF')) {
-      if(token && token.classeToken === 'EOF') action = tabela.SLRAction[estado].$
-      else action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
+    if(token && token.classeToken === 'EOF') {
+      action = tabela.SLRAction[estado].$;
+    } else {
+      if(isTerminal(token))
+        action = tabela.SLRAction[estado][token.classeToken.toLowerCase()];
+      else
+        action = tabela.SLRGoto[estado][token.classeToken];
     }
-    else action = tabela.SLRGoto[estado][token.classeToken]
     
     //printaDetalhes();
     cont++;
@@ -514,6 +518,8 @@ function PARSER(){
       pilha.push(action.slice(1));
       token = SCANNER(data, maquina);
       tabelaDeTokens.push(Object.assign({}, token));
+
+      flagErro = false;  
 
     } else if(action !== '' && action[0] === 'R'){
       regra = gramatica[action.slice(1)].producao;
@@ -530,13 +536,19 @@ function PARSER(){
       stringReducao = gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao;
       tabelaDeReducoes.push(stringReducao)
 
+      flagErro = false;  
 
     }else if(action !== '' && action === 'Acc') {
       console.log("Análise Terminou com Sucesso!") 
       break;
     }else {
-      avisaErro(estado)
+      if(!flagErro){
+        avisaErro(estado) 
+        flagErro = true;      
+      }
+
       token = PanicMode(token);
+      if(token && token.classeToken === 'EOF')break;
     }
   }
 
@@ -553,6 +565,7 @@ function PARSER(){
     do {
       tokenErrado = SCANNER(data, maquina);
       tabelaDeTokens.push(Object.assign({}, token));
+      if(tokenErrado && tokenErrado.classeToken === 'EOF') break;
     } while(tabela.SLRAction[estado][tokenErrado.classeToken] === '');
 
     return tokenErrado;
