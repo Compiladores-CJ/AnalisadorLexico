@@ -489,13 +489,14 @@ function PARSER(){
   let estado
   let removeDaPilha
   let contadorDeReducao = 1;
-  let error = false;
   //Variavel temporaria para debbug do projeto
 
   while(true){
     console.log("\n-------------------------------------------\nIteração: " + cont)
     cont++;
+
     estado = pilha[pilha.length - 1];
+    
     //console.log("--- VARIAVEIS INICIO---")
     //console.log("       PILHA: ", {pilha})
     console.log("       TOKEN: " + token.classeToken + "; LEXEMA: " + token.lexemaToken)
@@ -529,17 +530,15 @@ function PARSER(){
       break;
     }else {
       // erro
-      console.log("       ERRO na linha " + linha + " e coluna " + coluna);
-      if(token?.classeToken === 'EOF'){
-        console.log("Análise Terminou com Erro!!!!!") 
-        break
-      }
-      token = PanicMode(token); 
+      
+      avisaErro(estado)
+
+      token = PanicMode(token);       
     }
   }
 
   function isTerminal(tokenTeste) {
-    terminais = ["inicio", "varinicio", "varfim", "inteiro", "real", "literal",  "leia", "escreva", "pt_v", "vir",  "lit",  "num", "id",   "atr",  "opa", "se", "ab_p", "fc_p", "entao","opr", "fimse", "fim", "$"]
+    terminais = ["inicio", "varinicio", "varfim", "inteiro", "real", "literal",  "leia", "escreva", "pt_v", "vir",  "lit",  "num", "id", "atr",  "opa", "se", "ab_p", "fc_p", "entao","opr", "fimse", "fim", "$"]
 
     if(terminais.includes(token.classeToken.toLowerCase()))
       return true;
@@ -551,9 +550,40 @@ function PARSER(){
     do {
       tokenErrado = SCANNER(data, maquina)
       console.log("       Procurando Token...");
-    } while(tabela.SLRGoto[estado][tokenErrado.classeToken] === ''); 
+    } while(tabela.SLRAction[estado][tokenErrado.classeToken] === '');
 
     return tokenErrado;
+  }
+
+  function avisaErro(estadoRecebido) {
+    let possiveisErros = Object.entries(tabela.SLRAction[estadoRecebido]).filter(element => element[1] !== '').map( element => {return element[0];});
+    let stringResposta = "Erro próximo a linha " + linha + ' e coluna ' + coluna + ". Possivelmente está faltando: ";
+    if(possiveisErros.includes('inicio')) stringResposta += '\'inicio\' ou '
+    if(possiveisErros.includes('varinicio')) stringResposta += '\'varinicio\' ou '
+    if(possiveisErros.includes('varfim')) stringResposta += '\'varfim\' ou '
+    if(possiveisErros.includes('inteiro')) stringResposta += '\'inteiro\' ou '
+    if(possiveisErros.includes('real')) stringResposta += '\'real\' ou '
+    if(possiveisErros.includes('literal')) stringResposta += '\'literal\' ou '
+    if(possiveisErros.includes('leia')) stringResposta += '\'leia\' ou '
+    if(possiveisErros.includes('escreva')) stringResposta += '\'escreva\' ou '
+    if(possiveisErros.includes('pt_v')) stringResposta += '\';\' ou '
+    if(possiveisErros.includes('vir')) stringResposta += '\',\' ou '
+    if(possiveisErros.includes('lit')) stringResposta += '\'uma constante literal\' ou '
+    if(possiveisErros.includes('num')) stringResposta += '\'uma constante numérica\' ou '
+    if(possiveisErros.includes('id')) stringResposta += '\'uma variavel(id)\' ou '
+    if(possiveisErros.includes('atr')) stringResposta += '\'<-\' ou '
+    if(possiveisErros.includes('opa')) stringResposta += '\'um operador aritmético\' ou '
+    if(possiveisErros.includes('se')) stringResposta += '\'se\' ou '
+    if(possiveisErros.includes('ab_p')) stringResposta += '\'(\' ou '
+    if(possiveisErros.includes('fc_p')) stringResposta += '\')\' ou '
+    if(possiveisErros.includes('entao')) stringResposta += '\'entao\' ou '
+    if(possiveisErros.includes('opr')) stringResposta += '\'um operador relacional\' ou '
+    if(possiveisErros.includes('fimse')) stringResposta += '\'fimse\' ou '
+    if(possiveisErros.includes('fim')) stringResposta += '\'fim\' ou '
+    stringResposta = stringResposta.slice(0, -4);
+    stringResposta += ".";
+
+    console.log(stringResposta);
   }
 }
 
