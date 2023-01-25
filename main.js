@@ -478,8 +478,8 @@ function SCANNER(data, maquina){
 function PARSER(){
   let cont = 1
   const fs = require('fs');
-  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
-  // const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  //const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   
   //lexico
   let maquina = Object.create(maquinaDeterministica);
@@ -494,28 +494,27 @@ function PARSER(){
   let regra
   let estado
   let removeDaPilha
-  let contadorDeReducao = 1;
+  let contadorDeReducao = 0;
 
   while(true){
-    //console.log("\n-------------------------------------------\nIteração: " + cont)
-    cont++;
-
+    
     estado = pilha[pilha.length - 1];
 
-    //console.log("       PILHA: ", {pilha})
-    //console.log("       TOKEN: " + token.classeToken + "; LEXEMA: " + token.lexemaToken)
-    //console.log("       ESTADO: ", {estado})
-
-    if(isTerminal(token) || token?.classeToken === 'EOF') {
-      if(token?.classeToken === 'EOF') action = tabela.SLRAction[estado].$
+    if(isTerminal(token) || (token && token.classeToken === 'EOF')) {
+      if(token && token.classeToken === 'EOF') action = tabela.SLRAction[estado].$
       else action = tabela.SLRAction[estado][token.classeToken.toLowerCase()]
     }
     else action = tabela.SLRGoto[estado][token.classeToken]
-    //console.log({action});
+    
+    //printaDetalhes();
+    cont++;
+
     
     if(action !== '' && action[0] === 'S'){
       pilha.push(action.slice(1));
-      token = SCANNER(data, maquina)
+      token = SCANNER(data, maquina);
+      tabelaDeTokens.push(Object.assign({}, token));
+
     } else if(action !== '' && action[0] === 'R'){
       regra = gramatica[action.slice(1)].producao;
 
@@ -525,18 +524,19 @@ function PARSER(){
       estado = pilha[pilha.length - 1];
       pilha.push(tabela.SLRGoto[estado][gramatica[action.slice(1)].naoTerminal].toString());
      
-      // console.log(contadorDeReducao + " - Redução feita: " + gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao)
-      
+      // console.log("       " + contadorDeReducao + " - Redução feita: " + gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao)
+      // contadorDeReducao++;
+
       stringReducao = gramatica[action.slice(1)].naoTerminal + " -> " + gramatica[action.slice(1)].producao;
       tabelaDeReducoes.push(stringReducao)
 
-      //contadorDeReducao++;
+
     }else if(action !== '' && action === 'Acc') {
       console.log("Análise Terminou com Sucesso!") 
       break;
     }else {
       avisaErro(estado)
-      token = PanicMode(token);       
+      token = PanicMode(token);
     }
   }
 
@@ -551,8 +551,8 @@ function PARSER(){
 
   function PanicMode(tokenErrado){
     do {
-      tokenErrado = SCANNER(data, maquina)
-      //console.log("       Procurando Token...");
+      tokenErrado = SCANNER(data, maquina);
+      tabelaDeTokens.push(Object.assign({}, token));
     } while(tabela.SLRAction[estado][tokenErrado.classeToken] === '');
 
     return tokenErrado;
@@ -560,7 +560,7 @@ function PARSER(){
 
   function avisaErro(estadoRecebido) {
     let possiveisErros = Object.entries(tabela.SLRAction[estadoRecebido]).filter(element => element[1] !== '').map( element => {return element[0];});
-    let stringResposta = "Erro próximo a linha " + linha + ' e coluna ' + coluna + ". Possivelmente está faltando: ";
+    let stringResposta = "ERRO SINTÁTICO próximo a linha " + linha + ' e coluna ' + coluna + ". Possivelmente está faltando: ";
     if(possiveisErros.includes('inicio')) stringResposta += '\'inicio\' ou '
     if(possiveisErros.includes('varinicio')) stringResposta += '\'varinicio\' ou '
     if(possiveisErros.includes('varfim')) stringResposta += '\'varfim\' ou '
@@ -588,14 +588,20 @@ function PARSER(){
 
     console.log(stringResposta);
   }
-}
 
-//console.table(tabelaDeTokens)
-//console.table(tabelaDeSimbolos)
-//console.log(tabela.SLRAction);
-//console.log(tabela.SLRGoto);
-//console.log(gramatica);
+  function printaDetalhes() {
+    console.log("\n-------------------------------------------\nIteração: " + cont)
+    console.log("       PILHA: ", pilha.join("-"))
+    console.log("       TOKEN: " + token.classeToken + " | LEXEMA: " + token.lexemaToken + " | ESTADO: " + estado + " | ACTION: " + action)
+  }
+}
 
 PARSER()
 
-console.table(tabelaDeReducoes)
+console.table(tabelaDeReducoes);
+
+//console.table(tabelaDeTokens);
+//console.table(tabelaDeSimbolos);
+//console.table(tabela.SLRAction);
+//console.table(tabela.SLRGoto);
+//console.table(gramatica);
