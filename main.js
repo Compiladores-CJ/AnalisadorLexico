@@ -478,8 +478,8 @@ function SCANNER(data, maquina){
 function PARSER(){
   let cont = 1
   const fs = require('fs');
-  const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
-  //const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
+  //const data = fs.readFileSync('./teste.txt', {encoding:'utf8', flag:'r'});
+  const data = fs.readFileSync('./exemplo.txt', {encoding:'utf8', flag:'r'});
   
   //lexico
   let maquina = Object.create(maquinaDeterministica);
